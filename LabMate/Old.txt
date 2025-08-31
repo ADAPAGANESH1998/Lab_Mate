@@ -1,0 +1,132 @@
+<div class="container">
+  <!-- Left: Title Explanation -->
+  <aside class="left-panel">
+    <h4>👩‍🔬 Academic & Research Titles:</h4>
+    <ul>
+      <li>🔹 Dr. (Doctor) – For PhD holders and medical professionals</li>
+      <li>🔹 Prof. (Professor) – For university professors</li>
+      <li>🔹 Mr. – For male researchers without a doctoral degree</li>
+      <li>🔹 Ms. – For female researchers without a doctoral degree</li>
+      <li>🔹 Mrs. – For married female researchers</li>
+      <li>🔹 Miss – For unmarried female researchers</li>
+      <li>🔹 Mx. – Gender-neutral title</li>
+    </ul>
+    <h4>🩺 Medical & Healthcare Titles:</h4>
+    <ul>
+      <li>🔹 MD (Doctor of Medicine)</li>
+      <li>🔹 DVM (Doctor of Veterinary Medicine)</li>
+      <li>🔹 DDS (Doctor of Dental Surgery)</li>
+      <li>🔹 PharmD (Doctor of Pharmacy)</li>
+    </ul>
+    <h4>⚙️ Engineering & Professional Titles:</h4>
+    <ul>
+      <li>🔹 Er. (Engineer) – For professional engineers</li>
+    </ul>
+  </aside>
+
+  <!-- Center: Registration Form -->
+  <main class="form-wrapper">
+    <div class="container">
+      <div class="title-section">
+        <img src="./assets/logo.png" alt="Lab Mate Icon" class="labmate-icon">
+        <h1>Create new account</h1>
+        <!-- <p class="subtitle">Collaboration without borders</p> -->
+      </div>
+    </div>
+    
+    <!-- <p class="subheading">“Collaboration without borders”</p> -->
+
+    <form class="registration-form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <select [(ngModel)]="formData.title" name="title" class="form-select">
+          <optgroup label="Academic & Research Titles">
+            <option value="Dr.">🔹 Dr.</option>
+            <option value="Prof.">🔹 Prof.</option>
+            <option value="Mr.">🔹 Mr.</option>
+            <option value="Ms.">🔹 Ms.</option>
+            <option value="Mrs.">🔹 Mrs.</option>
+            <option value="Miss">🔹 Miss</option>
+            <option value="Mx.">🔹 Mx.</option>
+          </optgroup>
+          <optgroup label="Medical & Healthcare Titles">
+            <option value="MD">🔹 MD</option>
+            <option value="DVM">🔹 DVM</option>
+            <option value="DDS">🔹 DDS</option>
+            <option value="PharmD">🔹 PharmD</option>
+          </optgroup>
+          <optgroup label="Engineering & Professional Titles">
+            <option value="Er.">🔹 Er.</option>
+          </optgroup>
+        </select>
+
+        <input type="text" placeholder="Full name" [(ngModel)]="formData.fullName" name="fullName" />
+        <input type="text" placeholder="Enter ORCID ID (optional)" [(ngModel)]="formData.orcidId" name="orcidId" />
+      </div>
+
+      <!-- Updated DOB Section -->
+      <div class="row">
+        <label for="dob">Date of Birth</label>
+        <input type="date" id="dob" name="dateOfBirth" [(ngModel)]="formData.dateOfBirth" />
+      </div>
+
+      <div class="row">
+        <input type="text" placeholder="Scientist" [(ngModel)]="formData.field" name="field" />
+        <select [(ngModel)]="formData.profession" name="profession">
+          <option>Chemistry</option>
+        </select>
+        <select [(ngModel)]="formData.country" name="country">
+          <option>India</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <select [(ngModel)]="formData.state" name="state">
+          <option>Telangana</option>
+        </select>
+        <input type="email" placeholder="xyz@gmail.com" [(ngModel)]="formData.email" name="email" />
+      </div>
+
+      <div class="row">
+        <input type="email" placeholder="Confirm email address" [(ngModel)]="formData.confirmEmail" name="confirmEmail" />
+        <input type="text" placeholder="CSIR-IICT" [(ngModel)]="formData.organisation" name="organisation" />
+      </div>
+
+      <div class="row">
+        <input type="password" placeholder="Password" [(ngModel)]="formData.password" name="password" />
+        <input type="password" placeholder="Confirm password" [(ngModel)]="formData.confirmPassword" name="confirmPassword" />
+      </div>
+      <p class="disclaimer">
+        People who use our service may have uploaded your contact information to Labmate.
+        <a href="#">Learn more</a>.<br />
+        By clicking Sign Up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a>, and <a href="#">Cookies Policy</a>.
+      </p>
+
+      <button type="submit">Sign up</button>
+    </form>
+  </main>
+
+  <!-- Right: Field Metadata -->
+  <aside class="right-panel">
+    <div class="metadata-box">
+      <strong>Chemistry</strong>
+      <ul>
+        <li>Analytical Chemistry</li>
+        <li>Organic Chemistry</li>
+        <li>Inorganic Chemistry</li>
+        <li>Solid-State Chemistry</li>
+        <li>Crystallography</li>
+        <li>Computational Chemistry</li>
+        <li>Others</li>
+      </ul>
+      <strong>Physics</strong>
+      <ul>
+        <li>Condensed Matter</li>
+        <li><b>High Energy Physics</b></li>
+        <li><b>Optics and Photonics</b></li>
+        <li><b>Quantum Mechanics</b></li>
+        <li><b>Others</b></li>
+      </ul>
+      <small>The field entered here will be used as metadata to suggest journals etc. to researchers</small>
+    </div>
+  </aside>
+</div>

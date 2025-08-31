@@ -1,0 +1,266 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #F2F2F2;
+    color:#F2F2F2;
+  }
+  
+  .container {
+    background-color: #F2F2F2;
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .left-panel,
+  .right-panel {
+    width: 25%;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  
+  .left-panel h4,
+  .right-panel strong {
+    margin: 10px 0 5px;
+  }
+  
+  .left-panel ul,
+  .right-panel ul {
+    list-style-type: disc;
+    padding-left: 20px;
+  }
+  
+  .form-wrapper {
+    width: 70%;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 0;
+  }
+  
+  .subheading {
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+  
+  .registration-form .row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 19px;
+  }
+  
+  .registration-form input,
+  .registration-form select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .note {
+    background-color: yellow;
+    color: black;
+    font-weight: bold;
+    padding: 10px;
+    margin: 20px 0;
+    display: inline-block;
+  }
+  
+  .disclaimer {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 15px;
+  }
+  
+  .disclaimer a {
+    color: #0073e6;
+    text-decoration: none;
+  }
+  
+  button[type="submit"] {
+    width: 100%;
+    background-color: #00796b;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #00695c;
+  }
+  
+  .metadata-box {
+    background-color: white;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+   
+  }
+  .left-panel {
+    border: 1px solid #dee2e6;   // Bootstrap-like soft border
+    border-radius: 0.5rem;       // Same rounded corners
+    background-color: #ffffff;
+    padding: 1.5rem;
+    // box-shadow: 0 1px 3px rgba(175, 169, 169, 0.05); // Optional shadow for depth
+  }
+  .title-section {
+    display: flex;
+    align-items: center; /* vertically center the text and image */
+    gap: 5rem; /* spacing between image and title */
+    margin-bottom: 0.1rem; /* spacing from the form below */
+  }
+  
+  .labmate-icon {
+    height: 40px; /* Adjust as needed */
+    width: auto;
+  }
+  
+  .form-wrapper {
+    width: 60%;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    // border: 2px solid #00796b; /* New: Distinct border around the form */
+    
+  }
+  
+  /* Form rows - more structured spacing */
+  .registration-form .row {
+    // display: flex;
+    // flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 5px;
+  }
+  
+  /* Each input in the row takes half width (when two present), full if alone */
+  .registration-form input,
+  .registration-form select {
+    flex: 1 1 48%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  /* Full-width fields like disclaimer, button */
+  .registration-form .disclaimer,
+  .registration-form button {
+    flex: 1 1 100%;
+  }
+  
+  /* Optional spacing cleanup for button */
+  .registration-form button {
+    margin-top: 10px;
+  }
+
+  .left-panel ul {
+    list-style-type: none; // removes the default black dots
+    // padding-left: 0;       // optional: removes left padding for a cleaner alignment
+    // margin-left: 0;
+  }
+  
+//   .left-panel li {
+//     margin-bottom: 6px; // space between list items
+//   }
+
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(30, 21, 21, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .dialog-content {
+    background: #ffffff;
+    padding: 2rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    position: relative;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+
+
+  /* Category styling */
+  .category-list {
+    margin-bottom: 1rem;
+  }
+  .category-list strong {
+    font-size: 1.1rem;
+    color: #1f2937;
+  }
+  .category-list ul {
+    list-style: none;
+    padding-left: 1rem;
+  }
+  .category-list li {
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+  }
+  .category-list li:hover {
+    background-color: #f3f4f6;
+  }
+  
+  /* Input field for "Other" */
+  .other-field {
+    margin-top: 1rem;
+  }
+  .other-field input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .other-field input:focus {
+    border-color: #3b82f6;
+  }
+  
+  /* Close button */
+  .close-btn {
+    margin-top: 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    float: right;
+    transition: background-color 0.3s;
+  }
+  .close-btn:hover {
+    background: #dc2626;
+  }
+  .dialog-content, .category-list li, .close-btn {
+    cursor: pointer;
+  }  
+
+  

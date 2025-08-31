@@ -1,0 +1,70 @@
+<div class="signup-container">
+    <header class="signup-header">
+        <div class="logo">
+            <img src="./assets/logo1.png" alt="Lab Mate Icon" class="labmate-icon">
+        </div>
+        <h2 class="page-title">Create Institution/Business Account</h2>
+    </header>
+
+    <hr class="header-divider">
+
+    <form (ngSubmit)="onSubmit()" #institutionForm="ngForm">
+
+        <div class="form-row">
+            <div class="form-group full-width">
+                <label for="institution_name">Institution/Business Name</label>
+                <input type="text" name="institution"  [(ngModel)]="formData.institution" placeholder="Enter name">
+            </div>
+        </div>
+
+        <div class="form-row multi-column-3">
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <select [(ngModel)]="formData.country" (change)="onCountryChange()" name="country">
+                    <option *ngFor="let country of countries" [value]="country.name">{{ country.name }}</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="state">State/Province:</label>
+                <select [(ngModel)]="formData.state" name="state">
+                    <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+                </select>
+            </div>
+           
+        </div>
+
+        <div class="form-row multi-column-2">
+            <div class="form-group">
+                <label for="official_email">Official Email Address</label>
+                <input type="email" name="email" [(ngModel)]="formData.email"placeholder="example@domain.com">
+            </div>
+            <div class="form-group">
+                <label for="confirm_email">Confirm Email Address</label>
+                <input type="email" name="confirmEmail"   [(ngModel)]="formData.confirmEmail" placeholder="Re-enter email">
+            </div>
+           
+        </div>
+
+        <div class="form-row multi-column-2">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password"   [(ngModel)]="formData.password" placeholder="••••••">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" name="confirmPassword"  [(ngModel)]="formData.confirmPassword" placeholder="••••••">
+            </div>
+        </div>
+
+        <div class="form-footer">
+            <p>People who use our service may have uploaded your contact information to Labmate. <a href="#">Learn more</a>.</p>
+            <p>By clicking Sign Up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a>, and <a href="#">Cookies Policy</a>.</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-signup">Sign up</button>
+        </div>
+
+    </form>
+</div>

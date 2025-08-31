@@ -1,0 +1,172 @@
+<div class="container">
+  <!-- Left: Title Explanation -->
+  <aside class="left-panel">
+    <h4>👩‍🔬 Academic & Research Titles:</h4>
+    <ul>
+      <li>🔹 Dr. (Doctor) – For PhD holders and medical professionals</li>
+      <li>🔹 Prof. (Professor) – For university professors</li>
+      <li>🔹 Mr. – For male researchers without a doctoral degree</li>
+      <li>🔹 Ms. – For female researchers without a doctoral degree</li>
+      <li>🔹 Mrs. – For married female researchers</li>
+      <li>🔹 Miss – For unmarried female researchers</li>
+      <li>🔹 Mx. – Gender-neutral title</li>
+    </ul>
+    <h4>🩺 Medical & Healthcare Titles:</h4>
+    <ul>
+      <li>🔹 MD (Doctor of Medicine)</li>
+      <li>🔹 DVM (Doctor of Veterinary Medicine)</li>
+      <li>🔹 DDS (Doctor of Dental Surgery)</li>
+      <li>🔹 PharmD (Doctor of Pharmacy)</li>
+    </ul>
+    <h4>⚙️ Engineering & Professional Titles:</h4>
+    <ul>
+      <li>🔹 Er. (Engineer) – For professional engineers</li>
+    </ul>
+  </aside>
+
+  <!-- Center: Registration Form -->
+  <main class="form-wrapper">
+    <div class="container">
+      <div class="title-section">
+        <img src="./assets/logo1.png" alt="Lab Mate Icon" class="labmate-icon">
+        <h1 class="form-title">Create new account</h1>
+      </div>
+    </div>
+<h2></h2>
+    <form class="registration-form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <select [(ngModel)]="formData.title" name="title" class="form-select">
+          <optgroup label="Academic & Research Titles">
+            <option value="Dr.">🔹 Dr.</option>
+            <option value="Prof.">🔹 Prof.</option>
+            <option value="Mr.">🔹 Mr.</option>
+            <option value="Ms.">🔹 Ms.</option>
+            <option value="Mrs.">🔹 Mrs.</option>
+            <option value="Miss">🔹 Miss</option>
+            <option value="Mx.">🔹 Mx.</option>
+          </optgroup>
+          <optgroup label="Medical & Healthcare Titles">
+            <option value="MD">🔹 MD</option>
+            <option value="DVM">🔹 DVM</option>
+            <option value="DDS">🔹 DDS</option>
+            <option value="PharmD">🔹 PharmD</option>
+          </optgroup>
+          <optgroup label="Engineering & Professional Titles">
+            <option value="Er.">🔹 Er.</option>
+          </optgroup>
+        </select>
+
+        <input type="text" placeholder="Full name" [(ngModel)]="formData.fullName" name="fullName" />
+      </div>
+
+      <div class="row">
+        <label for="dob">Date of Birth</label>
+        <input type="date" id="dob" name="dateOfBirth" [(ngModel)]="formData.dateOfBirth" />
+      </div>
+
+      <div class="row">
+        <label for="field">Field:</label>
+        <div class="field-input-container">
+          <input readonly placeholder="Select Field" [value]="formData.field || ''" (click)="openFieldDialog()" />
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="field">Profession:</label>
+        <div class="field-input-container">
+          <input readonly placeholder="Select Profression" [value]="formData.profession || ''" (click)="openProfessionDialog()"  />
+        </div>
+      </div>
+
+      <!-- <div class="row">
+       
+        <input type="text" placeholder="Country (e.g. India)" [(ngModel)]="formData.country" name="country" />
+      </div>
+
+      <div class="row">
+        <input type="text" placeholder="State (e.g. Telangana)" [(ngModel)]="formData.state" name="state" />
+      </div> -->
+
+     <!-- src/app/components/registration/registration.component.html -->
+<div class="row">
+  <label for="country">Country:</label>
+  <select [(ngModel)]="formData.country" (change)="onCountryChange()" name="country">
+    <option *ngFor="let country of countries" [value]="country.name">{{ country.name }}</option>
+  </select>
+</div>
+
+<div class="row">
+  <label for="state">State/Province:</label>
+  <select [(ngModel)]="formData.state" name="state">
+    <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+  </select>
+</div>
+
+      <div class="row">
+        <input type="email" placeholder="Enter email address" [(ngModel)]="formData.email" name="email" />
+        <input type="email" placeholder="Confirm email address" [(ngModel)]="formData.confirmEmail" name="confirmEmail" />
+        <!-- <input type="text" placeholder="Institution (e.g. CSIR-IICT)" [(ngModel)]="formData.institution" name="institution" /> -->
+      </div>
+
+      <div class="row">
+        <label for="country">Institutions:</label>
+        <select [(ngModel)]="formData.institution"  name="institution">
+          <option *ngFor="let inst of institutions" [value]="inst.name">{{ inst.name }}</option>
+        </select>
+      </div>
+      <div class="row">
+        <input type="password" placeholder="Password" [(ngModel)]="formData.password" name="password" />
+        <input type="password" placeholder="Confirm password" [(ngModel)]="formData.confirmPassword" name="confirmPassword" />
+      </div>
+
+      <p class="disclaimer">
+        People who use our service may have uploaded your contact information to Labmate.
+        <a href="#">Learn more</a>.<br />
+        By clicking Sign Up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a>, and <a href="#">Cookies Policy</a>.
+      </p>
+
+      <button type="submit">Sign up</button>
+    </form>
+
+    <!-- Modal Field Selection (Moved outside form block for overlay effect) -->
+    <div class="dialog-overlay" *ngIf="showFieldPopup" (click)="closeFieldDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <h3>Select Your Field</h3>
+        <div class="category-list">
+          <div *ngFor="let category of professionCategories">
+            <strong>{{ category.name }}</strong>
+            <ul>
+              <li *ngFor="let sub of category.subfields" (click)="selectFielld  (sub)">📌 {{ sub }}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="other-field">
+          <input type="text" placeholder="Other..." [(ngModel)]="formData.field" name="field" />
+        </div>
+        <button class="close-btn" (click)="closeFieldDialog()">Close</button>
+      </div>
+    </div>
+    <!-- Modal Field Selection (Moved outside form block for overlay effect) -->
+<div class="dialog-overlay" *ngIf="showProfessionPopup" (click)="closeProfessionDialog()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <h3>Select Your Profession: </h3>
+    <div class="category-list">
+      <div *ngFor="let prof of professionOptions">
+        <strong>{{ prof.name }}</strong>
+        <ul>
+          <li *ngFor="let sub of prof.subfields" (click)="selectProfession  (sub)">📌 {{ sub }}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="other-field">
+      <input type="text" placeholder="Other..." [(ngModel)]="formData.profession" name="profession" />
+    </div>
+    <button class="close-btn" (click)="closeProfessionDialog()">Close</button>
+  </div>
+</div>
+  </main>
+</div>
+
+
+
+
