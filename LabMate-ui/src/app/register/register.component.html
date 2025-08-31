@@ -65,18 +65,20 @@
       </div>
 
       <div class="row">
-        <label for="field">Field:</label>
-        <div class="field-input-container">
-          <input readonly placeholder="Select Field" [value]="formData.field || ''" (click)="openFieldDialog()" />
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="field">Profession:</label>
-        <div class="field-input-container">
+         <label for="field">Profession:</label>
+        <!-- <div class="field-input-container"> -->
+               
           <input readonly placeholder="Select Profression" [value]="formData.profession || ''" (click)="openProfessionDialog()"  />
-        </div>
-      </div>
+      
+        <label for="field">Field:</label>
+       
+          <input readonly placeholder="Select Field" [value]="formData.field || ''" (click)="openFieldDialog()" />
+        
+     
+
+     
+       
+     
 
       <!-- <div class="row">
        
@@ -88,14 +90,16 @@
       </div> -->
 
      <!-- src/app/components/registration/registration.component.html -->
-<div class="row">
-  <label for="country">Country:</label>
-  <select [(ngModel)]="formData.country" (change)="onCountryChange()" name="country">
-    <option *ngFor="let country of countries" [value]="country.name">{{ country.name }}</option>
-  </select>
+
+ 
+<!-- </div> -->
 </div>
 
 <div class="row">
+   <label for="country">Country:</label>
+  <select [(ngModel)]="formData.country" (change)="onCountryChange()" name="country">
+    <option *ngFor="let country of countries" [value]="country.name">{{ country.name }}</option>
+  </select>
   <label for="state">State/Province:</label>
   <select [(ngModel)]="formData.state" name="state">
     <option *ngFor="let state of states" [value]="state">{{ state }}</option>

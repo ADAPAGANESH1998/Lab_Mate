@@ -75,7 +75,6 @@ export class RegisterComponent implements OnInit {
 
     this.registrationService.getInstitutions().subscribe((data) => {
       this.institutions = data.items;
-      console.log("sss"+this.institutions)
     });
     
   }
@@ -134,7 +133,7 @@ export class RegisterComponent implements OnInit {
   
     this.registrationService.saveRegister(finalFormData).subscribe(
       response => {
-        console.log('Registration Successful:', response);
+        sessionStorage.setItem('registeredUserId', response.id);
         alert('Registration successful!');
         this.router.navigate(['/login']);
       },

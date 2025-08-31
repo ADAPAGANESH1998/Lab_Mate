@@ -1,0 +1,78 @@
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+
+ <div class="profile-content">
+  <div class="profile-banner">
+     <label for="fileInput1">
+      <img [src]="imageUrlForInstitute || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
+    </label>
+    <input id="fileInput1" type="file" (change)="onFileSelectedForCollegeLogo($event)" hidden />
+  </div>
+
+  <div class="profile-header">
+    <label for="fileInput">
+      <img [src]="imageUrl || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
+    </label>
+    <input id="fileInput" type="file" (change)="onFileSelected($event)" hidden />
+    
+   <div class="profile-info">
+  <h3>{{ userData.fullName  }}</h3>
+  <p>
+    {{ userData.profession }}, {{ userData.department }}<br />
+    {{ userData.institution }}<br />
+    {{ userData.country }}
+  </p>
+  <strong>{{ userData.researchAreas }}</strong>
+  <div class="action-buttons">
+   <button [routerLink]="['/Collaboration']">Edit profile</button>
+    <button>Share profile</button>
+    <button class="more-btn">...</button>
+  </div>
+</div>
+
+  </div>
+
+
+
+    <div class="profile-tabs">
+  <button class="tab" [routerLink]="['/research']" [class.active]="isActive('/research')">Research</button>
+  <button class="tab" [routerLink]="['/collaboration']" [class.active]="isActive('/collaboration')">Collaboration</button>
+  <button class="tab" [routerLink]="['/achievements']" [class.active]="isActive('/achievements')">Achievements</button>
+  <button class="tab" [routerLink]="['/publications']" [class.active]="isActive('/publications')">Publications</button>
+</div>
+
+  <div class="profile-about">
+<form [formGroup]="achievementsForm" (ngSubmit)="onSubmit()" class="research-form-container">
+  <div class="form-section" *ngFor="let field of fieldConfigs">
+    <label class="field-label">{{ field.label }}</label>
+
+    <div class="textarea-wrapper">
+      <textarea
+        [formControlName]="field.controlName"
+        placeholder="">
+      </textarea>
+
+      <div class="info-icon-wrapper"
+           (mouseenter)="showTooltip(field.helper)"
+           (mouseleave)="hideTooltip()">
+        <span class="info-icon">ℹ️</span>
+        <div class="tooltip-box" *ngIf="tooltipText === field.helper">
+          {{ field.helper }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-footer">
+    <button type="submit" class="submit-btn">Save</button>
+  </div>
+</form>
+
+</div>
+
+
+
+</div>
+</div>
+
+

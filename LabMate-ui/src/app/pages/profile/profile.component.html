@@ -1,0 +1,223 @@
+<!--     
+<app-sidebar></app-sidebar>
+<div class="content">
+  <div style="text-align: center;">
+    <img src="assets/logo.png" alt="Banner" style="width: 100%; max-height: 200px; object-fit: cover;" />
+    <img src="assets/logo1.png" alt="User" style="width: 150px; border-radius: 50%; margin-top: -75px; border: 4px solid white;" />
+    <h2>Dr. Priya Nair</h2>
+    <p>
+      Assistant Professor, Department of Chemistry<br />
+      National Institute of Advanced Research<br />
+      Bangalore, India<br />
+      <strong>Solid state chemistry, Materials science, Nanotechnology</strong>
+    </p>
+    <div style="margin: 20px 0;">
+      <button>Edit profile</button>
+      <button>Share profile</button>
+      <button style="background-color: yellow; color: black;">...</button>
+    </div>
+  </div>
+
+  <div>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <button style="background-color: #004d4d; color: white;">Research</button>
+      <button style="background-color: #006666; color: white;">Collaboration</button>
+      <button style="background-color: #007777; color: white;">Achievements</button>
+      <button style="background-color: #008888; color: white;">Publications</button>
+    </div>
+
+    <h3>About</h3>
+    <p>
+      Dr. Priya Nair’s research interests lie in the fascinating domain of solid-state chemistry, focusing on the design, synthesis, and characterization of novel solid-state form of drugs. Her work delves into the structural analysis of crystalline materials...
+    </p>
+
+    <h4>Primary research focus</h4>
+    <ul>
+      <li>Solid-state chemistry</li>
+      <li>Design and synthesis of novel solid-state forms of API</li>
+    </ul>
+
+    <h4>Inspirational question</h4>
+    <p>“Can co-crystals reach the main-stream market in future?”</p>
+
+    <h4>Current research challenges</h4>
+    <p>“Stabilizing the kinetic high value polymorph of paracetamol”</p>
+
+    <h4>Lab Techniques Expertise</h4>
+    <p>X-ray Crystallography, Thermal Analysis, Spectroscopy, Mercury, Crystal explorer</p>
+
+    <h4>Dream Research Projects</h4>
+    <ul>
+      <li>Designing advanced cocrystals to improve drug delivery and stability</li>
+      <li>Developing sustainable materials for electronics and energy storage</li>
+    </ul>
+
+    <h4>Looking for Funding</h4>
+    <p><strong>Yes</strong>, interested in securing grants for large-scale synthesis of co-crystals for industrial application.</p>
+  </div>
+</div> -->
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+
+ <div class="profile-content">
+  <div class="profile-banner">
+     <label for="fileInput1">
+      <img [src]="imageUrlForInstitute || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
+    </label>
+    <input id="fileInput1" type="file" (change)="onFileSelectedForCollegeLogo($event)" hidden />
+  </div>
+
+  <div class="profile-header">
+    <label for="fileInput">
+      <img [src]="imageUrl || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
+    </label>
+    <input id="fileInput" type="file" (change)="onFileSelected($event)" hidden />
+    
+   <div class="profile-info">
+  <h3>{{ userData.fullName  }}</h3>
+  <p>
+    {{ userData.profession }}, {{ userData.department }}<br />
+    {{ userData.institution }}<br />
+    {{ userData.country }}
+  </p>
+  <strong>{{ userData.researchAreas }}</strong>
+  <div class="action-buttons">
+   <button [routerLink]="['/research']">Edit profile</button>
+    <button>Share profile</button>
+    <button class="more-btn">...</button>
+  </div>
+</div>
+
+  </div>
+
+
+
+ <div class="profile-tabs">
+  <button class="tab" [class.active]="activeTab === 'research'" (click)="setTab('research')">Research</button>
+  <button class="tab" [class.active]="activeTab === 'collaboration'" (click)="setTab('collaboration')">Collaboration</button>
+  <button class="tab" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">Achievements</button>
+  <button class="tab" [class.active]="activeTab === 'publications'" (click)="setTab('publications')">Publications</button>
+</div>
+
+
+   <div class="profile-about" *ngIf="activeTab === 'research' && researcherData">
+      <h4>About</h4>
+      <p>
+       {{ researcherData.aboutResearch  }}
+      </p>
+
+      <h4>Primary research focus</h4>
+      
+      <p>{{ researcherData.primaryResearchFocus  }}</p>   
+    
+
+      <h4>Inspirational question</h4>
+       <p>{{ researcherData.inspirationalQuestion  }}</p>   
+
+      <h4>Current research challenges</h4>
+      <p>{{ researcherData.currentResearchChallenges  }}</p>   
+
+      <h4>Lab Techniques Expertise</h4>
+      <p>{{ researcherData.techniquesExpertise    }}</p>   
+      <h4>Dream Research Projects</h4>
+      <p>{{ researcherData.researchProjects  }}</p>   
+
+      <h4>Looking for Funding</h4>
+       <p>{{ researcherData.areYouLookingForFunding  }}</p>   
+
+    </div>
+
+    
+  
+  <div class="profile-about" *ngIf="activeTab === 'collaboration' && collaborationData">
+  <h4>Types of Collaboration Desired</h4>
+  <p>{{ collaborationData.typesOfCollaborationDesired }}</p>
+
+  <h4>Preferred Domains</h4>
+  <p>{{ collaborationData.preferredDomains }}</p>
+
+  <h4>Collaboration Goals</h4>
+  <p>{{ collaborationData.collaborationGoals }}</p>
+
+  <h4>Resource Sharing</h4>
+  <p>{{ collaborationData.resourceSharing }}</p>
+
+  <h4>Available Time</h4>
+  <p>{{ collaborationData.availableTime }}</p>
+
+  <h4>Desired Skills in Collaborators</h4>
+  <p>{{ collaborationData.desiredSkillsInCollaborators }}</p>
+
+  <h4>Mutual Benefits in Collaboration</h4>
+  <p>{{ collaborationData.mutualBenefitsInCollaboration }}</p>
+</div>
+
+<div class="profile-about" *ngIf="activeTab === 'achievements' && achievementData">
+  <h4>Awards and Recognition</h4>
+  <p>{{ achievementData.awardsAndRecognition }}</p>
+
+  <h4>Major Milestones</h4>
+  <p>{{ achievementData.majorMilestones }}</p>
+
+  <h4>Funding Secured</h4>
+  <p>{{ achievementData.fundingSecured }}</p>
+
+  <h4>Breakthroughs or Innovations</h4>
+  <p>{{ achievementData.breakthroughsOrInnovations }}</p>
+
+  <h4>Teaching and Mentorship</h4>
+  <p>{{ achievementData.teachingAndMentorship }}</p>
+
+  <h4>Community Contributions</h4>
+  <p>{{ achievementData.communityContributions }}</p>
+</div>
+
+  </div>
+  <!-- ✅ RIGHT SIDEBAR START -->
+  <div class="right-sidebar">
+    <div class="section">
+      <h4>Recommended Collaborators</h4>
+      <div class="collaborator" *ngFor="let c of recommendedCollaborators">
+        <strong>{{ c.name }}</strong> <br />
+        <small>{{ c.field }}</small> <br />
+        <button>Follow</button>
+        <button>Request Collaboration</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Suggested Research Papers</h4>
+      <ul>
+        <li *ngFor="let paper of suggestedPapers">
+          📄 <strong>{{ paper.title }}</strong><br />
+          <small>{{ paper.journal }} ({{ paper.year }})</small><br />
+          <a href="#">View</a> | <a href="#">Save</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h4>Upcoming Events & Conferences</h4>
+      <ul>
+        <li *ngFor="let event of events">
+          📅 <strong>{{ event.title }}</strong><br />
+          <small>{{ event.date }} • {{ event.location }}</small><br />
+          <a href="#">Register</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h4>Impact Dashboard</h4>
+      <p>
+        📈 <strong>Citation Trend</strong><br />
+        2020: 30 | 2021: 55 | 2022: 80 | 2023: 120
+      </p>
+      <p>📚 Publications: 12</p>
+      <p>🎓 Collaborations: 6</p>
+      <p>💡 Grants Secured: 3</p>
+      <a href="#">View Full Analytics</a>
+    </div>
+  </div>
+</div>
+

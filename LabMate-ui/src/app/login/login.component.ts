@@ -23,12 +23,20 @@ export class LoginComponent implements OnInit {
     if (this.loginForm.valid) {
       const loginData = this.loginForm.value;
       this.service.login(loginData).subscribe({
-        next: (response) => {
-          alert('Login successful:');
-          // handle navigation or state change
-        },
+       next: (response) => {
+  console.log('Login response:', response); // 👈 Check what's actually returned
+
+  // Try accessing the correct field
+  sessionStorage.setItem('authToken', response);  
+// token, accessToken, jwt, etc.
+this.router.navigate(['/profile']);
+ // alert('Login successful');
+}
+,
         error: (error) => {
-          alert('Login successful:');
+            sessionStorage.setItem('authToken', error);
+          this.router.navigate(['/profile']);
+     
         }
       });
     }

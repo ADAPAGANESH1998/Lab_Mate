@@ -105,9 +105,18 @@ body {
     position: relative;
 }
 
-.form-group input[type="email"],
+.form-group input[type="email"]{
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #a9d7f0;
+    background-color: #BDD7EE;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #333;
+}
+
 .form-group input[type="password"] {
-    width: 95%;
+      width: 80%;
     padding: 12px 15px;
     border: 1px solid #a9d7f0;
     background-color: #BDD7EE;
@@ -126,7 +135,7 @@ body {
 
 .toggle-password {
     position: absolute;
-    right: 15px;
+    right: 40px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
@@ -213,4 +222,25 @@ hr {
          padding: 20px 30px;
          flex: auto; /* Reset flex */
     }
+}
+.or-separator {
+  text-align: center;
+  color: #000; /* Slightly darker than default #6c757d */
+  font-size: 0.9rem;
+  margin: 15px 0;
+}
+.createAccount {
+     display: block;
+    width: 99%;
+    padding: 5px 120px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    margin-top: 0;
+    margin-bottom: 15px;
 }
