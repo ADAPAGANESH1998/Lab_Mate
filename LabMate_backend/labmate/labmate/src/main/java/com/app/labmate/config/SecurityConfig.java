@@ -19,7 +19,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/login", "/api/register","/api/saveInstitution").permitAll()
+                        .requestMatchers("/api/login", "/api/register","/api/saveInstitution","/api/research","/api/collaboration","/api/upload","/api/latest","/api/uploadForInstitute","/api/latestForInstitute","/api/getByEmail/**","/api/getResearchByEmail/**","/api/getCollaborationByEmail/**","/api/**").permitAll()
 //                        .requestMatchers("/admin").hasRole("ADMIN") // Example of role-based access
                         .anyRequest().authenticated()
                 )
