@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.util.Optional;
+
 /**
  *
  * @author Ganesh Adapa
@@ -92,6 +94,18 @@ public class UserController {
             return ResponseEntity.status(401).body("Unauthorized: Missing or invalid token.");
         }
     }
+
+//    @GetMapping("/researcher/{id}")
+//    public Optional<User> getResearcher(@PathVariable("id") Long id) {
+//        return userService.getResearcher(id);
+//    }
+
+    @GetMapping("/getByEmail/{email}")
+    public ResponseEntity<User> getUserByEmail(@PathVariable("email") String email) {
+        return userService.getUserByEmail(email);
+    }
+
+
 
 }
 

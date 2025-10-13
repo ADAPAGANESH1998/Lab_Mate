@@ -1,0 +1,148 @@
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+
+  <div class="profile-content">
+    <!-- Banner -->
+    <div class="profile-banner">
+      <label for="fileInput1">
+        <img [src]="imageUrlForInstitute || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
+      </label>
+      <input id="fileInput1" type="file" (change)="onFileSelectedForCollegeLogo($event)" hidden />
+    </div>
+
+    <!-- Header -->
+    <div class="profile-header">
+      <label for="fileInput">
+        <img [src]="imageUrl || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
+      </label>
+      <input id="fileInput" type="file" (change)="onFileSelected($event)" hidden />
+
+      <div class="profile-info">
+        <h3>{{ userData.fullName }}</h3>
+        <p>
+          {{ userData.profession }}, {{ userData.department }}<br />
+          {{ userData.institution }}<br />
+          {{ userData.country }}
+        </p>
+        <strong>{{ userData.researchAreas }}</strong>
+        <div class="action-buttons">
+          <button [routerLink]="['/Collaboration']">Edit profile</button>
+          <button>Share profile</button>
+            <button [routerLink]="['/profile']">Profile</button>
+          <button class="more-btn">...</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="profile-tabs">
+      <button class="tab" [routerLink]="['/research']" [class.active]="isActive('/research')">Research</button>
+      <button class="tab" [routerLink]="['/collaboration']" [class.active]="isActive('/collaboration')">Collaboration</button>
+      <button class="tab" [routerLink]="['/achievements']" [class.active]="isActive('/achievements')">Achievements</button>
+      <button class="tab" [routerLink]="['/publications']" [class.active]="isActive('/publications')">Publications</button>
+    </div>
+
+    <!-- Publications Form -->
+    <div class="profile-about">
+      <form [formGroup]="publicationsForm" (ngSubmit)="onSubmit()" class="research-form-container">
+        <!-- <div class="form-section">
+          <label  class="submit-btn">Enter DOI / ScienceDirect URL</label>
+          <input type="text" formControlName="doiUrl" placeholder="Paste DOI or ScienceDirect link here" />
+        </div> -->
+ <div class="mb-9">
+        <div class="form-footer">
+          <button type="submit" class="submit-btn">Enter DOI </button>
+         
+  <input 
+    type="text" 
+    formControlName="doiUrl" 
+    placeholder="Paste DOI" 
+    class="form-control"
+  />
+</div>
+
+        </div>
+        <div *ngIf="publication" class="publication-result">
+     <hr>
+
+      <div class="horizontal-table">
+        <div class="column">
+          
+           <b>Title</b>
+           <h3>{{ publication.title || 'N/A' }}</h3>
+         </div>
+        <div class="column"> 
+          <b>Authors</b>
+          <p>{{ publication.authors || 'N/A' }}</p>
+        <a href="{{ publication.doi || 'N/A' }}">{{ publication.doi || 'N/A' }}</a>
+        
+          
+        </div>
+        <!-- <div class="column">
+          <b>Journal</b>
+          <p>{{ publication.journal || 'N/A' }}</p>
+        </div> -->
+       
+      </div>
+    </div>
+  </form>
+
+      <!-- Publication Result -->
+     
+    </div>
+  </div>
+  <!-- ✅ RIGHT SIDEBAR START -->
+    <!-- Right Column: Publication Details -->
+<div class="right-sidebar" *ngIf="selectedPublication">
+  <h3>{{ selectedPublication.title }}</h3>
+
+  <table class="pub-table">
+    <tr>
+      <td><b>Authors</b></td>
+      <td>{{ selectedPublication.authors || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>Journal</b></td>
+      <td>{{ selectedPublication.journal || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>Volume</b></td>
+      <td>{{ selectedPublication.volume || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>Issue</b></td>
+      <td>{{ selectedPublication.issue || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>Pages</b></td>
+      <td>{{ selectedPublication.pages || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>Year</b></td>
+      <td>{{ selectedPublication.date || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>DOI</b></td>
+      <td>{{ selectedPublication.doi || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>ISSN</b></td>
+      <td>{{ selectedPublication.issn || 'N/A' }}</td>
+    </tr>
+    <tr>
+      <td><b>URL</b></td>
+      <td>
+        <a [href]="selectedPublication.url" target="_blank">{{ selectedPublication.url }}</a>
+      </td>
+    </tr>
+    <tr>
+      <td><b>Abstract</b></td>
+      <td>{{ selectedPublication.abstractText || 'N/A' }}</td>
+    </tr>
+  </table>
+</div>
+
+</div>
+
+
+

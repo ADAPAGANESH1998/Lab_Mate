@@ -4,9 +4,11 @@ import com.app.labmate.model.Institution;
 import com.app.labmate.model.User;
 import com.app.labmate.repo.InstitutionRepo;
 import com.app.labmate.repo.UserRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -45,13 +47,25 @@ public class UserService {
 
         public boolean authenticate(String email, String password) {
             // Find the user by email
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+//            User user = userRepository.findByEmail(email)
+//                    .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> user = userRepository.findByEmail(email);
+            if(user.isPresent()) {
+                 return password.equals(user.get().getPassword());
+            } else {
+                Optional<Institution> institution = institutionRepo.findByEmail(email);
+                return password.equals(institution.get().getPassword());
+            }
 
-            Institution institution  = institutionRepo.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            // Compare the provided password with the stored password (plain text comparison)
-            return password.equals(user.getPassword()) || password.equals(institution.getPassword());
         }
+
+//    public Optional<User> getResearcher(Long id) {
+//        return userRepository.findById(id);
+//    }
+
+    public ResponseEntity<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

@@ -1,40 +1,40 @@
 /* Basic Reset & Body Styling */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: #f4f7f6; /* Light background */
-    color: #333;
-    line-height: 2;
-    padding: 20px; /* Add padding around the container */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Align container to top */
-    min-height: 80vh;
-    
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #F2F2F2;
+  color: #333;
+  line-height: 2;
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Main Container */
 .signup-container {
-    width: 100%;
-    max-width: 850px; /* Adjust max width as needed */
-    background-color: #ffffff;
-    padding: 30px 40px;
-    border-radius: 6px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 9500px;
+  background-color: #ffffff;
+  padding: 30px 40px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 /* Header */
 .signup-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 20px;
-    background-color: #F2F2F2;
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 20px;
+  background-color: #F2F2F2;
 }
 
 .logo {
@@ -42,191 +42,172 @@ body {
 }
 
 .logo h1 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 0;
-    color: #333;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0;
+  color: #333;
 }
 
 .logo p {
-    font-size: 0.75rem;
-    color: #6c757d;
+  font-size: 0.75rem;
+  color: #6c757d;
 }
 
 .page-title {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: #333;
-    flex-grow: 1;
-    text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #333;
+  flex-grow: 1;
+  text-align: center;
 }
 
 .header-divider {
-    border: none;
-    border-top: 1px solid #eee;
-    margin-bottom: 30px;
+  border: none;
+  border-top: 1px solid #eee;
+  margin-bottom: 30px;
 }
 
 /* Form Styling */
 .signup-form {
-    width: 100%;
+  width: 100%;
 }
 
 .form-row {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .form-row.multi-column-3,
 .form-row.multi-column-2 {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  gap: 20px;
 }
 
 .form-group {
-    margin-bottom: 0;
-    flex: 1;
+  margin-bottom: 0;
+  flex: 1;
 }
 
 .form-group.full-width {
-    flex-basis: 100%;
-    display: flex;
-    justify-content: center;
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .form-group label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 500;
-    margin-bottom: 6px;
-    color: #555;
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #555;
 }
 
 .form-group input[type="text"],
 .form-group input[type="email"],
 .form-group input[type="password"],
 .form-group select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.95rem;
-    background-color: #fff;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: #fff;
 }
 
 #institution_name {
-    width: 45%;
-    flex-grow: 0;
-    flex-shrink: 0;
+  width: 45%;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .form-group input::placeholder {
-    color: #aaa;
+  color: #aaa;
 }
-
-/* Center the Confirm Password Group & Reduce Size */
-
-
 
 /* Footer Text */
 .form-footer {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 30px;
-    margin-bottom: 30px;
-    line-height: 1.5;
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  line-height: 1.5;
 }
 
 .form-footer p {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .form-footer a {
-    color: #007bff;
-    text-decoration: none;
+  color: #007bff;
+  text-decoration: none;
 }
 
 .form-footer a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* Actions / Button */
 .form-actions {
-    text-align: center;
-    margin-top: 20px;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .btn {
-    padding: 12px 30px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ffffff;
-    cursor: pointer;
-    text-align: center;
-    transition: background-color 0.3s ease;
+  padding: 6px 90px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
 }
 
 .btn-signup {
-    background-color: #006666; /* Dark teal color */
+  background-color: #006666;
 }
 
 .btn-signup:hover {
-    background-color: #006666;
+  background-color: #005656;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    .signup-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-     .page-title {
-        font-size: 1.4rem;
-        width: 100%;
-        text-align: center;
-     }
+  .signup-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 
-    .form-row.multi-column-3,
-    .form-row.multi-column-2 {
-       flex-direction: column;
-       gap: 15px;
-       margin-bottom: 0;
-
-    }
-     .form-row.multi-column-3 .form-group,
-     .form-row.multi-column-2 .form-group {
-         margin-bottom: 15px;
-     }
-
-    
-      #institution_name {
-         width: 100%;
-     }
-     .form-group.full-width {
-         justify-content: flex-start;
-     }
-}
-.confirm-password-group { /* Ensure you added this class in HTML */
-    width: 45%;
-flex-grow: 0;
-flex-shrink: 0;
-
-
-}
-
-.signup-container {
-    margin-left: 350px;
-    margin-top: 50px;
-    margin-right: 350px;
-}   
-.signup-container[_ngcontent-kam-c52] {
+  .page-title {
+    font-size: 1.4rem;
     width: 100%;
-    max-width: 850px;
-    background-color: #ffffff;
-    padding: 30px 40px;
-    border-radius: 6px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    margin-left: 300px;
+    text-align: center;
+  }
+
+  .form-row.multi-column-3,
+  .form-row.multi-column-2 {
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 0;
+  }
+
+  .form-row.multi-column-3 .form-group,
+  .form-row.multi-column-2 .form-group {
+    margin-bottom: 15px;
+  }
+
+  #institution_name {
+    width: 100%;
+  }
+
+  .form-group.full-width {
+    justify-content: flex-start;
+  }
+}
+
+.confirm-password-group {
+  width: 45%;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
