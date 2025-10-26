@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LabmateService } from 'src/app/labmate.service';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-publications',
@@ -20,7 +22,12 @@ export class PublicationsComponent implements OnInit {
   selectedFileForInstituteLogo!: File;
   imageUrlForInstitute: string | ArrayBuffer | null = null;
 
-  constructor(private fb: FormBuilder, private service: LabmateService, private router: Router) {}
+  showPDFModal = false;
+  pdfUrl: string | null = null;
+  safePdfUrl: SafeResourceUrl | null = null;
+  pdfBlobUrl: string | null = null;
+
+  constructor(private fb: FormBuilder, private service: LabmateService, private router: Router, private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
     this.publicationsForm = this.fb.group({
@@ -31,12 +38,44 @@ export class PublicationsComponent implements OnInit {
    
   }
 
-  onSubmit(): void {
-    const doiUrl = this.publicationsForm.value.doiUrl;
-    if (doiUrl) {
-      this.service.getPublication(doiUrl).subscribe(data => {
-        this.publication = data;
-      });
+  // Remove popup state for Enter DOI, add for Upload PDF
+  showUploadDOIPopup = false;
+  showUploadCopyrightPopup = false;
+  showUploadEmbargoPopup = false;
+  showUploadSelfArchivingPopup = false;
+  showUploadInstitutionalPopup = false;
+  showUploadTermsPopup = false;
+  private uploadPDFPub: any = null;
+
+  onUploadPDFPopup(pub: any): void {
+    this.uploadPDFPub = pub;
+    this.showUploadDOIPopup = true;
+  }
+  onUploadDOIPopupContinue(): void {
+    this.showUploadDOIPopup = false;
+    this.showUploadCopyrightPopup = true;
+  }
+  onUploadCopyrightPopupContinue(): void {
+    this.showUploadCopyrightPopup = false;
+    this.showUploadEmbargoPopup = true;
+  }
+  onUploadEmbargoPopupContinue(): void {
+    this.showUploadEmbargoPopup = false;
+    this.showUploadSelfArchivingPopup = true;
+  }
+  onUploadSelfArchivingPopupContinue(): void {
+    this.showUploadSelfArchivingPopup = false;
+    this.showUploadInstitutionalPopup = true;
+  }
+  onUploadInstitutionalPopupContinue(): void {
+    this.showUploadInstitutionalPopup = false;
+    this.showUploadTermsPopup = true;
+  }
+  onUploadTermsPopupContinue(): void {
+    this.showUploadTermsPopup = false;
+    if (this.uploadPDFPub) {
+      this.uploadPDF(this.uploadPDFPub);
+      this.uploadPDFPub = null;
     }
   }
 
@@ -120,4 +159,60 @@ publications: any[] = [];
     this.selectedPublication = pub;
   }
 
+  uploadPDF(pub: any): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      const username = this.userData.email;
+      const title = pub.title;
+      const url = `http://localhost:8080/api/upload-pdf?username=${encodeURIComponent(username)}&title=${encodeURIComponent(title)}`;
+      this.http.post(url, formData).subscribe({
+        next: () => alert('PDF uploaded successfully!'),
+        error: () => alert('PDF upload failed!')
+      });
+    };
+    input.click();
+  }
+
+  viewPDF(pub: any): void {
+    const username = this.userData.email;
+    const title = pub.title;
+    const url = `http://localhost:8080/api/pdf/${encodeURIComponent(username)}/${encodeURIComponent(title)}`;
+    // Fetch as blob and create a blob URL
+    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+      if (this.pdfBlobUrl) {
+        URL.revokeObjectURL(this.pdfBlobUrl);
+      }
+      this.pdfBlobUrl = URL.createObjectURL(blob);
+      this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.pdfBlobUrl);
+      this.pdfUrl = this.pdfBlobUrl;
+      this.showPDFModal = true;
+    }, err => {
+      alert('Failed to load PDF.');
+    });
+  }
+
+  closePDFModal(): void {
+    this.showPDFModal = false;
+    this.pdfUrl = null;
+    this.safePdfUrl = null;
+    if (this.pdfBlobUrl) {
+      URL.revokeObjectURL(this.pdfBlobUrl);
+      this.pdfBlobUrl = null;
+    }
+  }
+
+  downloadPDF(): void {
+    if (this.pdfBlobUrl) {
+      const a = document.createElement('a');
+      a.href = this.pdfBlobUrl;
+      a.download = 'publication.pdf';
+      a.click();
+    }
+  }
 }

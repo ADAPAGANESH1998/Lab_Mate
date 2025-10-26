@@ -1,6 +1,9 @@
 package com.app.labmate.controller;
 
 import com.app.labmate.model.ArticleDTO;
+import com.app.labmate.model.PdfDocument;
+import com.app.labmate.model.PdfMetadata;
+import com.app.labmate.repo.PdfDocumentRepository;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -10,12 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
 @RequestMapping("/api")
@@ -23,6 +28,12 @@ public class ArticleController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private PdfDocumentRepository pdfDocumentRepository;
+
+    // In-memory storage for PDF metadata
+    private static final CopyOnWriteArrayList<PdfMetadata> pdfMetadataList = new CopyOnWriteArrayList<>();
 
     @GetMapping("/article")
     public ResponseEntity<?> getArticle(@RequestParam String url) {
@@ -105,6 +116,46 @@ public class ArticleController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Error fetching article: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload-pdf")
+    public ResponseEntity<?> uploadPdf(@RequestParam("file") MultipartFile file,
+                                       @RequestParam("username") String username,
+                                       @RequestParam("title") String title) {
+        try {
+            if (file.isEmpty() || !file.getOriginalFilename().endsWith(".pdf")) {
+                return ResponseEntity.badRequest().body("Please upload a valid PDF file.");
+            }
+            byte[] pdfBytes = file.getBytes();
+            PdfDocument existing = pdfDocumentRepository.findByUsernameAndTitle(username, title).orElse(null);
+            if (existing != null) {
+                existing.setPdfData(pdfBytes);
+                pdfDocumentRepository.save(existing);
+                return ResponseEntity.ok("File updated and stored in database successfully.");
+            } else {
+                PdfDocument pdfDocument = new PdfDocument(username, title, pdfBytes);
+                pdfDocumentRepository.save(pdfDocument);
+                return ResponseEntity.ok("File uploaded and stored in database successfully.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload failed: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/pdf/{username}/{title}")
+    public ResponseEntity<?> getPdfByUserAndTitle(@PathVariable String username, @PathVariable String title) {
+        try {
+            PdfDocument pdfDoc = pdfDocumentRepository.findByUsernameAndTitle(username, title).orElse(null);
+            if (pdfDoc == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PDF not found for user and title.");
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfDoc.getTitle() + ".pdf\"")
+                    .body(pdfDoc.getPdfData());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving PDF: " + e.getMessage());
         }
     }
 

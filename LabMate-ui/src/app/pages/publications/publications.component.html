@@ -44,58 +44,258 @@
 
     <!-- Publications Form -->
     <div class="profile-about">
+
       <form [formGroup]="publicationsForm" (ngSubmit)="onSubmit()" class="research-form-container">
-        <!-- <div class="form-section">
-          <label  class="submit-btn">Enter DOI / ScienceDirect URL</label>
-          <input type="text" formControlName="doiUrl" placeholder="Paste DOI or ScienceDirect link here" />
-        </div> -->
- <div class="mb-9">
-        <div class="form-footer">
-          <button type="submit" class="submit-btn">Enter DOI </button>
-         
-  <input 
-    type="text" 
-    formControlName="doiUrl" 
-    placeholder="Paste DOI" 
-    class="form-control"
-  />
-</div>
-
+        <div class="mb-9">
+          <div class="form-footer">
+            <button type="submit" class="submit-btn">Enter DOI</button>
+            <input type="text" formControlName="doiUrl" placeholder="Paste DOI" class="form-control" />
+          </div>
         </div>
-        <div *ngIf="publication" class="publication-result">
-     <hr>
-
-      <div class="horizontal-table">
-        <div class="column">
-          
-           <b>Title</b>
-           <h3>{{ publication.title || 'N/A' }}</h3>
-         </div>
-        <div class="column"> 
-          <b>Authors</b>
-          <p>{{ publication.authors || 'N/A' }}</p>
-        <a href="{{ publication.doi || 'N/A' }}">{{ publication.doi || 'N/A' }}</a>
-        
-          
+        <!-- Popup Modal 1: DOI Info -->
+        <div *ngIf="showDOIPopup" class="doi-popup-overlay">
+          <div class="doi-popup">
+            <h2>What Is DOI and Why Use It?</h2>
+            <p><b>Definition:</b> A DOI (Digital Object Identifier) is a permanent link to a publication.</p>
+            <p><b>Why Upload DOI Instead of PDFs?</b></p>
+            <p>
+              DOIs provide a direct link to the journal-hosted version, ensuring legality. Users can still share their research without violating copyright.<br>
+              <b>Example:</b> DOI: 10.1038/s41586-020-2649-2 (Leads to the Nature journal site).
+            </p>
+            <p style="color:#fff; background:#008080; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px;">
+              Background colour code #008080<br>
+              Font: TimesnewRoman
+            </p>
+            <p>
+              Before uploading your publications, it's essential to inform you about key publishing terms, legal considerations, and ethical guidelines.
+            </p>
+            <div style="text-align:center; margin: 1.5rem 0;">
+              <span style="font-size:2rem;">&#x27A1;&#x27A1;</span>
+            </div>
+            <button (click)="onDOIPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem;">Continue</button>
+          </div>
         </div>
-        <!-- <div class="column">
-          <b>Journal</b>
-          <p>{{ publication.journal || 'N/A' }}</p>
+
+        <!-- Popup Modal 2: Copyright & Publisher Policies -->
+        <div *ngIf="showCopyrightPopup" class="doi-popup-overlay">
+          <div class="doi-popup copyright-popup">
+            <h2>Copyright &amp; Publisher Policies</h2>
+            <ul style="list-style: disc; margin-left: 1.5rem;">
+              <li><b>Understanding Rights</b>
+                <ul style="list-style: none;">
+                  <li>-Many journals own the copyright to your published work unless specified otherwise.</li>
+                  <li>-You may only have permission to share the preprint (before peer review) or accepted manuscript (after peer review but before typesetting).</li>
+                </ul>
+              </li>
+              <li style="margin-top:1rem;"><b>Types of Open Access Models:</b>
+                <ul style="list-style: none;">
+                  <li>1.Gold Open Access – Authors pay an APC (Article Processing Charge) to make the article openly available.</li>
+                  <li>2.Green Open Access – Authors can self-archive their work after an embargo period.</li>
+                  <li>3.Hybrid Open Access – Combination of both models, often with optional fees for open access.</li>
+                </ul>
+              </li>
+              <li style="margin-top:1rem;"><b>How LabMate Handles This?</b>
+                <ul style="list-style: none;">
+                  <li>-Users must ensure they have the legal right to upload full-text PDFs.</li>
+                  <li>-LabMate will not be responsible for copyright violations.</li>
+                </ul>
+              </li>
+            </ul>
+            <p style="color:#fff; background:#1E3A8A; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px; margin-top:2rem;">
+              Background colour code #1E3A8A<br>
+              Font:<a href="https://fonts.google.com/specimen/Times+New+Roman" style="color:#fff; text-decoration:underline;">TimesnewRoman</a>
+            </p>
+            <div style="text-align:center; margin: 1.5rem 0;">
+              <span style="font-size:2rem;">&#x27A1;&#x27A1;</span>
+            </div>
+            <button (click)="onCopyrightPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem;">Skip</button>
+          </div>
+        </div>
+
+        <!-- Popup Modal 3: Embargo Period -->
+        <div *ngIf="showEmbargoPopup" class="doi-popup-overlay">
+          <div class="doi-popup embargo-popup">
+            <h2>Embargo Period</h2>
+            <p style="color:#595959; font-family:TimesNewRoman;">
+              An embargo period is the time set by publishers during which a research article cannot be freely shared (usually after acceptance but before open-access availability).
+            </p>
+            <ul style="list-style: disc; margin-left: 1.5rem; color:#595959;">
+              <li><b style="color:#595959;">◆ Why It Matters?</b>
+                <ul style="list-style: none;">
+                  <li>-Publishers impose embargo periods to protect their subscription revenue.</li>
+                  <li>-Uploading a full-text article during the embargo period may violate copyright agreements.</li>
+                </ul>
+              </li>
+              <li style="margin-top:1rem;"><b style="color:#595959;">◆ How to Check Embargo Period?</b>
+                <ul style="list-style: none;">
+                  <li>-Use the Sherpa/Romeo database to verify embargo policies of different publishers.</li>
+                  <li>-Some journals allow self-archiving (Green Open Access) after a specified period.</li>
+                  <li style="margin-top:0.5rem;"> <b>Example:</b></li>
+                  <li>-Elsevier: Typically, 12-24 months embargo.</li>
+                  <li>-Springer: Varies, check journal-specific policies.</li>
+                  <li>-Nature: Often does not allow self-archiving of published versions.</li>
+                </ul>
+              </li>
+            </ul>
+            <p style="color:#595959; background:#FFC107; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px; margin-top:2rem;">
+              Background colour code #FFC107<br>
+              Font:<a href="https://fonts.google.com/specimen/Times+New+Roman" style="color:#595959; text-decoration:underline;">TimesnewRoman</a><br>
+              Font colour: #595959
+            </p>
+            <div style="text-align:center; margin: 1.5rem 0;">
+              <span style="font-size:2rem; color:#595959;">&#x27A1;&#x27A1;</span>
+            </div>
+            <button (click)="onEmbargoPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem; color:#595959;">Skip</button>
+          </div>
+        </div>
+
+        <!-- Popup Modal 4: Self-Archiving -->
+        <div *ngIf="showSelfArchivingPopup" class="doi-popup-overlay">
+          <div class="doi-popup self-archiving-popup">
+            <h2>Self-Archiving</h2>
+            <p style="font-weight:bold; margin-bottom:0.5rem;">What It Is &amp; Why It Matters</p>
+            <p style="font-weight:bold; margin-bottom:0.2rem;">Definition</p>
+            <p style="color:#222; font-family:TimesNewRoman;">
+              Self-archiving is the practice of authors uploading a version of their research paper to an open-access repository, institutional website, or preprint server, making it freely available to the public.
+            </p>
+            <p style="font-weight:bold; margin-bottom:0.2rem;">Why Is It Important?</p>
+            <ul style="list-style: disc; margin-left: 1.5rem; color:#222;">
+              <li>Increases the visibility and accessibility of research.</li>
+              <li>Bypasses paywalls, allowing researchers worldwide to access scientific knowledge.</li>
+              <li>Complies with funding agency requirements for open-access publication.</li>
+            </ul>
+            <p style="font-weight:bold; margin-bottom:0.2rem;">Types of Self-Archived Versions</p>
+            <ul style="list-style: none; color:#222;">
+              <li>Preprint (Before Peer Review).</li>
+              <li>Post print (After Peer Review, Before Formatting)</li>
+              <li>Publisher’s PDF (Final Published Version)</li>
+            </ul>
+            <p style="color:#222; background:#00B0F0; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px; margin-top:2rem;">
+              Background colour code #00B0F0<br>
+              Font:<a href="https://fonts.google.com/specimen/Times+New+Roman" style="color:#222; text-decoration:underline;">TimesnewRoman</a>
+            </p>
+            <div style="text-align:center; margin: 1.5rem 0;">
+              <span style="font-size:2rem; color:#222;">&#x27A1;&#x27A1;</span>
+            </div>
+            <button (click)="onSelfArchivingPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem; color:#222;">Skip</button>
+          </div>
+        </div>
+
+        <!-- Popup Modal 5: Institutional Repository -->
+        <div *ngIf="showInstitutionalPopup" class="doi-popup-overlay">
+          <div class="doi-popup institutional-popup" style="background:#2E7D32; color:#fff;">
+            <h2 style="font-family:TimesNewRoman; text-align:center;">What Are Institutional Repositories?</h2>
+            <p style="font-family:TimesNewRoman;">
+              Many universities allow researchers to upload their work to a trusted repository instead of third-party websites.<br>
+              <b>Example:</b> arXiv, PubMed Central, Zenodo, ResearchGate.
+            </p>
+            <p style="font-family:TimesNewRoman;">
+              <b>What to Check Before Uploading?</b><br>
+              Some journals permit self-archiving of the preprint version but not the final published version.<br>
+              Always check journal policies before uploading.
+            </p>
+            <div style="margin:2rem 0; color:#fff;">
+              Background colour code #2E7D32<br>
+              <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
+            </div>
+            <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
+            <button (click)="onInstitutionalPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+          </div>
+        </div>
+
+        <!-- Popup Modal 6: Terms for Publication Uploads -->
+        <div *ngIf="showTermsPopup" class="doi-popup-overlay">
+          <div class="doi-popup terms-popup" style="background:#4472C4; color:#fff;">
+            <h2 style="font-family:TimesNewRoman; text-align:center;">LabMate’s Terms for Publication Uploads</h2>
+            <p style="font-family:TimesNewRoman; font-weight:bold;">Users Must Agree to the Following Before Uploading</p>
+            <ul style="font-family:TimesNewRoman; list-style:none; padding-left:0;">
+              <li>✅ I confirm that I have checked the embargo period and publisher policies.</li>
+              <li>✅ I understand that <b>LabMate</b> only allows DOI uploads and does not permit unauthorized full-text sharing.</li>
+              <li>✅ If I upload a publication in violation of copyright policies, LabMate is not responsible.</li>
+              <li>✅ I will use official institutional repositories for full-text uploads where necessary.</li>
+            </ul>
+            <div style="margin:2rem 0; color:#fff;">
+              Background colour code #4472C4<br>
+              <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
+            </div>
+            <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
+            <button (click)="onTermsPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+          </div>
+        </div>
+
+        <!-- Only show results if popups are not visible -->
+        <!-- <div *ngIf="publication && !showDOIPopup && !showCopyrightPopup && !showEmbargoPopup && !showSelfArchivingPopup && !showInstitutionalPopup" class="publication-result">
+          <hr>
+          <div class="horizontal-table">
+            <div class="column">
+              <b>Title</b>
+              <h3>{{ publication.title || 'N/A' }}</h3>
+            </div>
+            <div class="column">
+              <b>Authors</b>
+              <p>{{ publication.authors || 'N/A' }}</p>
+              <a href="{{ publication.doi || 'N/A' }}">{{ publication.doi || 'N/A' }}</a>
+            </div> -->
+            <!-- <div class="column">
+              <b>Journal</b>
+              <p>{{ publication.journal || 'N/A' }}</p>
+            </div> -->
+          <!-- </div>
         </div> -->
-       
-      </div>
-    </div>
-  </form>
+      </form>
 
       <!-- Publication Result -->
-     
+      <!-- Only show publication list after results are available -->
+<div *ngIf="publications && publications.length > 0 && publications[0].title && publications[0].authors && !showDOIPopup && !showCopyrightPopup && !showEmbargoPopup && !showSelfArchivingPopup && !showInstitutionalPopup && !showTermsPopup" class="publication-list">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Q&amp;A</th>
+        <th>Recommend</th>
+        <th>Share</th>
+        <th>Upload PDF</th>
+        <th>View PDF</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let pub of publications">
+        <tr *ngIf="pub.title && pub.authors">
+          <td>
+            <a [href]="pub.url || pub.doi" target="_blank" class="pub-title">{{ pub.title }}</a>
+          </td>
+          <td>
+            <ng-container *ngFor="let author of pub.authorsArray; let last = last">
+              <a href="#" class="author-link">{{ author }}</a><span *ngIf="!last">, </span>
+            </ng-container>
+          </td>
+          <td style="text-align:center;">
+            <span title="Q&amp;A" style="font-size:1.5rem; color:#e63946;">❓</span>
+          </td>
+          <td style="text-align:center;">
+            <span title="Recommend" style="font-size:1.5rem; color:#00796b;">👍</span>
+          </td>
+          <td style="text-align:center;">
+            <span title="Share" style="font-size:1.5rem; color:#0056b3;">🔗</span>
+          </td>
+          <td style="text-align:center;">
+            <button (click)="onUploadPDFPopup(pub)" title="Upload PDF" style="font-size:1.3rem;">⬆️</button>
+          </td>
+          <td style="text-align:center;">
+            <button (click)="viewPDF(pub)" title="View PDF" style="font-size:1.3rem;">📄</button>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+</div>
     </div>
   </div>
   <!-- ✅ RIGHT SIDEBAR START -->
     <!-- Right Column: Publication Details -->
-<div class="right-sidebar" *ngIf="selectedPublication">
+<div class="right-sidebar" *ngIf="selectedPublication && selectedPublication.title">
   <h3>{{ selectedPublication.title }}</h3>
-
   <table class="pub-table">
     <tr>
       <td><b>Authors</b></td>
@@ -142,6 +342,328 @@
   </table>
 </div>
 
+</div>
+
+<!-- Add this to your global styles or publications.component.scss -->
+<style>
+.doi-popup-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.doi-popup {
+  background: #008080;
+  color: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  font-family: 'Times New Roman', Times, serif;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+  position: relative;
+}
+.doi-popup.copyright-popup {
+  background: #1E3A8A;
+}
+.popup-next-btn {
+  background: #fff;
+  color: #008080;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+}
+.copyright-popup .popup-next-btn {
+  color: #1E3A8A;
+}
+.embargo-popup {
+  background: #FFC107 !important;
+  color: #595959 !important;
+}
+.embargo-popup h2 {
+  color: #595959 !important;
+}
+.embargo-popup .popup-next-btn {
+  color: #595959 !important;
+}
+.self-archiving-popup {
+  background: #00B0F0 !important;
+  color: #222 !important;
+}
+.self-archiving-popup h2 {
+  color: #222 !important;
+}
+.self-archiving-popup .popup-next-btn {
+  color: #222 !important;
+}
+.institutional-popup {
+  background: #2E7D32 !important;
+  color: #fff !important;
+}
+.institutional-popup h2 {
+  color: #fff !important;
+}
+.institutional-popup .popup-next-btn {
+  color: #fff !important;
+}
+.terms-popup {
+  background: #4472C4 !important;
+  color: #fff !important;
+}
+.terms-popup h2 {
+  color: #fff !important;
+}
+.terms-popup .popup-next-btn {
+  color: #fff !important;
+}
+.publication-list table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.publication-list th, .publication-list td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+.pub-title {
+  color: #0056b3;
+  font-weight: bold;
+  text-decoration: none;
+}
+.author-link {
+  color: #00796b;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.qa-btn, .recommend-btn, .share-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.pdf-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdf-modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 900px;
+  width: 95vw;
+  max-height: 90vh;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.pdf-modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+}
+.pdf-download-btn {
+  margin-top: 1rem;
+  align-self: flex-end;
+  background: #008080;
+  color: #fff;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+}
+</style>
+
+<!-- Component logic moved to publications.component.ts -->
+
+<!-- PDF Viewer Modal -->
+<div *ngIf="showPDFModal" class="pdf-modal-overlay">
+  <div class="pdf-modal-content">
+    <button class="pdf-modal-close" (click)="closePDFModal()">&times;</button>
+    <iframe [src]="safePdfUrl" width="100%" height="600px" style="border:none;"></iframe>
+  
+  </div>
+</div>
+
+<!-- Popups (move to bottom of file, outside form) -->
+<div *ngIf="showUploadDOIPopup" class="doi-popup-overlay">
+  <div class="doi-popup">
+    <h2>What Is DOI and Why Use It?</h2>
+    <p><b>Definition:</b> A DOI (Digital Object Identifier) is a permanent link to a publication.</p>
+    <p><b>Why Upload DOI Instead of PDFs?</b></p>
+    <p>
+      DOIs provide a direct link to the journal-hosted version, ensuring legality. Users can still share their research without violating copyright.<br>
+      <b>Example:</b> DOI: 10.1038/s41586-020-2649-2 (Leads to the Nature journal site).
+    </p>
+    <p style="color:#fff; background:#008080; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px;">
+      Background colour code #008080<br>
+      Font: TimesnewRoman
+    </p>
+    <p>
+      Before uploading your publications, it's essential to inform you about key publishing terms, legal considerations, and ethical guidelines.
+    </p>
+    <div style="text-align:center; margin: 1.5rem 0;">
+      <span style="font-size:2rem;">&#x27A1;&#x27A1;</span>
+    </div>
+    <button (click)="onUploadDOIPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem;">Continue</button>
+  </div>
+</div>
+<div *ngIf="showUploadCopyrightPopup" class="doi-popup-overlay">
+  <div class="doi-popup copyright-popup">
+    <h2>Copyright &amp; Publisher Policies</h2>
+    <ul style="list-style: disc; margin-left: 1.5rem;">
+      <li><b>Understanding Rights</b>
+        <ul style="list-style: none;">
+          <li>-Many journals own the copyright to your published work unless specified otherwise.</li>
+          <li>-You may only have permission to share the preprint (before peer review) or accepted manuscript (after peer review but before typesetting).</li>
+        </ul>
+      </li>
+      <li style="margin-top:1rem;"><b>Types of Open Access Models:</b>
+        <ul style="list-style: none;">
+          <li>1.Gold Open Access – Authors pay an APC (Article Processing Charge) to make the article openly available.</li>
+          <li>2.Green Open Access – Authors can self-archive their work after an embargo period.</li>
+          <li>3.Hybrid Open Access – Combination of both models, often with optional fees for open access.</li>
+        </ul>
+      </li>
+      <li style="margin-top:1rem;"><b>How LabMate Handles This?</b>
+        <ul style="list-style: none;">
+          <li>-Users must ensure they have the legal right to upload full-text PDFs.</li>
+          <li>-LabMate will not be responsible for copyright violations.</li>
+        </ul>
+      </li>
+    </ul>
+    <p style="color:#fff; background:#1E3A8A; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px; margin-top:2rem;">
+      Background colour code #1E3A8A<br>
+      Font:<a href="https://fonts.google.com/specimen/Times+New+Roman" style="color:#fff; text-decoration:underline;">TimesnewRoman</a>
+    </p>
+    <div style="text-align:center; margin: 1.5rem 0;">
+      <span style="font-size:2rem;">&#x27A1;&#x27A1;</span>
+    </div>
+    <button (click)="onUploadCopyrightPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem;">Skip</button>
+  </div>
+</div>
+<div *ngIf="showUploadEmbargoPopup" class="doi-popup-overlay">
+  <div class="doi-popup embargo-popup">
+    <h2>Embargo Period</h2>
+    <p style="color:#595959; font-family:TimesNewRoman;">
+      An embargo period is the time set by publishers during which a research article cannot be freely shared (usually after acceptance but before open-access availability).
+    </p>
+    <ul style="list-style: disc; margin-left: 1.5rem; color:#595959;">
+      <li><b style="color:#595959;">◆ Why It Matters?</b>
+        <ul style="list-style: none;">
+          <li>-Publishers impose embargo periods to protect their subscription revenue.</li>
+          <li>-Uploading a full-text article during the embargo period may violate copyright agreements.</li>
+        </ul>
+      </li>
+      <li style="margin-top:1rem;"><b style="color:#595959;">◆ How to Check Embargo Period?</b>
+        <ul style="list-style: none;">
+          <li>-Use the Sherpa/Romeo database to verify embargo policies of different publishers.</li>
+          <li>-Some journals allow self-archiving (Green Open Access) after a specified period.</li>
+          <li style="margin-top:0.5rem;"> <b>Example:</b></li>
+          <li>-Elsevier: Typically, 12-24 months embargo.</li>
+          <li>-Springer: Varies, check journal-specific policies.</li>
+          <li>-Nature: Often does not allow self-archiving of published versions.</li>
+        </ul>
+      </li>
+    </ul>
+    <p style="color:#595959; background:#FFC107; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px; margin-top:2rem;">
+      Background colour code #FFC107<br>
+      Font:<a href="https://fonts.google.com/specimen/Times+New+Roman" style="color:#595959; text-decoration:underline;">TimesnewRoman</a><br>
+      Font colour: #595959
+    </p>
+    <div style="text-align:center; margin: 1.5rem 0;">
+      <span style="font-size:2rem; color:#595959;">&#x27A1;&#x27A1;</span>
+    </div>
+    <button (click)="onUploadEmbargoPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem; color:#595959;">Skip</button>
+  </div>
+</div>
+<div *ngIf="showUploadSelfArchivingPopup" class="doi-popup-overlay">
+  <div class="doi-popup self-archiving-popup">
+    <h2>Self-Archiving</h2>
+    <p style="font-weight:bold; margin-bottom:0.5rem;">What It Is &amp; Why It Matters</p>
+    <p style="font-weight:bold; margin-bottom:0.2rem;">Definition</p>
+    <p style="color:#222; font-family:TimesNewRoman;">
+      Self-archiving is the practice of authors uploading a version of their research paper to an open-access repository, institutional website, or preprint server, making it freely available to the public.
+    </p>
+    <p style="font-weight:bold; margin-bottom:0.2rem;">Why Is It Important?</p>
+    <ul style="list-style: disc; margin-left: 1.5rem; color:#222;">
+      <li>Increases the visibility and accessibility of research.</li>
+      <li>Bypasses paywalls, allowing researchers worldwide to access scientific knowledge.</li>
+      <li>Complies with funding agency requirements for open-access publication.</li>
+    </ul>
+    <p style="font-weight:bold; margin-bottom:0.2rem;">Types of Self-Archived Versions</p>
+    <ul style="list-style: none; color:#222;">
+      <li>Preprint (Before Peer Review).</li>
+      <li>Post print (After Peer Review, Before Formatting)</li>
+      <li>Publisher’s PDF (Final Published Version)</li>
+    </ul>
+    <p style="color:#222; background:#00B0F0; font-family:TimesNewRoman; padding: 0.5rem; border-radius: 4px; margin-top:2rem;">
+      Background colour code #00B0F0<br>
+      Font:<a href="https://fonts.google.com/specimen/Times+New+Roman" style="color:#222; text-decoration:underline;">TimesnewRoman</a>
+    </p>
+    <div style="text-align:center; margin: 1.5rem 0;">
+      <span style="font-size:2rem; color:#222;">&#x27A1;&#x27A1;</span>
+    </div>
+    <button (click)="onUploadSelfArchivingPopupContinue()" class="popup-next-btn" style="float:right; margin-top:1rem; color:#222;">Skip</button>
+  </div>
+</div>
+<div *ngIf="showUploadInstitutionalPopup" class="doi-popup-overlay">
+  <div class="doi-popup institutional-popup" style="background:#2E7D32; color:#fff;">
+    <h2 style="font-family:TimesNewRoman; text-align:center;">What Are Institutional Repositories?</h2>
+    <p style="font-family:TimesNewRoman;">
+      Many universities allow researchers to upload their work to a trusted repository instead of third-party websites.<br>
+      <b>Example:</b> arXiv, PubMed Central, Zenodo, ResearchGate.
+    </p>
+    <p style="font-family:TimesNewRoman;">
+      <b>What to Check Before Uploading?</b><br>
+      Some journals permit self-archiving of the preprint version but not the final published version.<br>
+      Always check journal policies before uploading.
+    </p>
+    <div style="margin:2rem 0; color:#fff;">
+      Background colour code #2E7D32<br>
+      <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
+    </div>
+    <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
+    <button (click)="onInstitutionalPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+  </div>
+</div>
+<div *ngIf="showUploadTermsPopup" class="doi-popup-overlay">
+  <div class="doi-popup terms-popup" style="background:#4472C4; color:#fff;">
+    <h2 style="font-family:TimesNewRoman; text-align:center;">LabMate’s Terms for Publication Uploads</h2>
+    <p style="font-family:TimesNewRoman; font-weight:bold;">Users Must Agree to the Following Before Uploading</p>
+    <ul style="font-family:TimesNewRoman; list-style:none; padding-left:0;">
+      <li>✅ I confirm that I have checked the embargo period and publisher policies.</li>
+      <li>✅ I understand that <b>LabMate</b> only allows DOI uploads and does not permit unauthorized full-text sharing.</li>
+      <li>✅ If I upload a publication in violation of copyright policies, LabMate is not responsible.</li>
+      <li>✅ I will use official institutional repositories for full-text uploads where necessary.</li>
+    </ul>
+    <div style="margin:2rem 0; color:#fff;">
+      Background colour code #4472C4<br>
+      <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
+    </div>
+    <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
+    <button (click)="onTermsPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+  </div>
 </div>
 
 
