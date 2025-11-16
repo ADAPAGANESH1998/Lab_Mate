@@ -1,17 +1,17 @@
-<div class="main-layout">
-  <app-sidebar></app-sidebar>
+<div [ngClass]="{ 'main-layout': !embedded }">
+  <app-sidebar *ngIf="!embedded"></app-sidebar>
 
   <div class="profile-content">
-    <!-- Banner -->
-    <div class="profile-banner">
+  <!-- Banner -->
+  <div class="profile-banner">
       <label for="fileInput1">
         <img [src]="imageUrlForInstitute || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
       </label>
       <input id="fileInput1" type="file" (change)="onFileSelectedForCollegeLogo($event)" hidden />
     </div>
 
-    <!-- Header -->
-    <div class="profile-header">
+  <!-- Header -->
+  <div class="profile-header">
       <label for="fileInput">
         <img [src]="imageUrl || 'assets/logo1.png'" alt="User" class="avatar" style="cursor:pointer;" />
       </label>
@@ -34,8 +34,8 @@
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="profile-tabs">
+  <!-- Tabs -->
+  <div class="profile-tabs">
       <button class="tab" [routerLink]="['/research']" [class.active]="isActive('/research')">Research</button>
       <button class="tab" [routerLink]="['/collaboration']" [class.active]="isActive('/collaboration')">Collaboration</button>
       <button class="tab" [routerLink]="['/achievements']" [class.active]="isActive('/achievements')">Achievements</button>
@@ -45,7 +45,15 @@
     <!-- Publications Form -->
     <div class="profile-about">
 
-      <form [formGroup]="publicationsForm" (ngSubmit)="onSubmit()" class="research-form-container">
+      <!-- Sub-navigation for Publications page -->
+      <div class="pub-subtabs" role="tablist" aria-label="Publications subpages">
+        <button class="subtab" [class.active]="activeSubpage==='publications'" (click)="setSubpage('publications')">Publications</button>
+        <button class="subtab" [class.active]="activeSubpage==='insights'" (click)="setSubpage('insights')">Insights and Trends</button>
+        <button class="subtab" [class.active]="activeSubpage==='collaborations'" (click)="setSubpage('collaborations')">Collaborations &amp; co-authors</button>
+        <button class="subtab" [class.active]="activeSubpage==='ongoing'" (click)="setSubpage('ongoing')">On-going projects</button>
+      </div>
+
+  <form *ngIf="activeSubpage==='publications'" [formGroup]="publicationsForm" (ngSubmit)="onSubmit()" class="research-form-container">
         <div class="mb-9">
           <div class="form-footer">
             <button type="submit" class="submit-btn">Enter DOI</button>
@@ -199,7 +207,13 @@
               <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
             </div>
             <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
-            <button (click)="onInstitutionalPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+            <div style="margin-top:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+              <label style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
+                <input type="checkbox" (change)="onUploadInstitutionalChecked($event)" />
+                I agree to upload this publication to an institutional repository
+              </label>
+              <button (click)="onUploadInstitutionalAgree()" [disabled]="!uploadInstitutionalAgreed" class="popup-next-btn" style="float:right;">Agree &amp; Upload</button>
+            </div>
           </div>
         </div>
 
@@ -224,6 +238,7 @@
         </div>
 
         <!-- Only show results if popups are not visible -->
+        <!-- Publication results shown only when Publications subtab is active -->
         <!-- <div *ngIf="publication && !showDOIPopup && !showCopyrightPopup && !showEmbargoPopup && !showSelfArchivingPopup && !showInstitutionalPopup" class="publication-result">
           <hr>
           <div class="horizontal-table">
@@ -244,9 +259,58 @@
         </div> -->
       </form>
 
+      <!-- Insights & Trends section -->
+  <div *ngIf="activeSubpage==='insights' && insightsYears && insightsYears.length" class="insights-section">
+        <h3>Insights and Trends</h3>
+        <div class="insights-chart-wrapper">
+          <div class="chart-area">
+            <div class="chart-title">Number of Publications</div>
+            <div class="bars">
+              <ng-container *ngFor="let y of insightsYears; let i = index">
+                <div class="bar-item">
+                  <!-- Use pixel height binding to avoid percent-height sizing issues -->
+                  <div class="bar" [style.height.px]="(insightsCounts && insightsCounts[i]) ? (insightsCounts[i] / ((insightsBestYearCount && insightsBestYearCount>0)?insightsBestYearCount:1) * 160) : 4"></div>
+                  <div class="bar-label">{{ y }}</div>
+                </div>
+              </ng-container>
+            </div>
+            <div class="chart-controls">
+              <button class="sort-btn" (click)="sortByYear()">Sort: {{ insightsSortLabel }}</button>
+              <button class="reset-btn" (click)="resetInsightsSort()">Reset</button>
+            </div>
+          </div>
+
+          <div class="insights-metrics">
+            <table class="insights-table">
+              <thead>
+                <tr><th>Metric</th><th>Value</th><th>Insight</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Total publications</td>
+                  <td>{{ insightsTotalPublications }} publications</td>
+                  <td>Overview across the recorded years</td>
+                </tr>
+                <tr>
+                  <td>Best Year</td>
+                  <td>{{ insightsBestYear || 'N/A' }} <span *ngIf="insightsBestYear">({{ insightsBestYearCount }} publications)</span></td>
+                  <td *ngIf="insightsBestYear">Most productive year</td>
+                  <td *ngIf="!insightsBestYear">N/A</td>
+                </tr>
+                <tr>
+                  <td>Most active journal</td>
+                  <td>{{ insightsMostActiveJournal || 'N/A' }}</td>
+                  <td>Journal with highest number of publications</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Publication Result -->
       <!-- Only show publication list after results are available -->
-<div *ngIf="publications && publications.length > 0 && publications[0].title && publications[0].authors && !showDOIPopup && !showCopyrightPopup && !showEmbargoPopup && !showSelfArchivingPopup && !showInstitutionalPopup && !showTermsPopup" class="publication-list">
+<div *ngIf="activeSubpage==='publications' && publications && publications.length > 0 && publications[0].title && publications[0].authors && !showDOIPopup && !showCopyrightPopup && !showEmbargoPopup && !showSelfArchivingPopup && !showInstitutionalPopup && !showTermsPopup" class="publication-list">
   <table>
     <thead>
       <tr>
@@ -255,13 +319,14 @@
         <th>Q&amp;A</th>
         <th>Recommend</th>
         <th>Share</th>
+  <th *ngIf="userData.role !== 'visitor'">Save</th>
         <th>Upload PDF</th>
         <th>View PDF</th>
       </tr>
     </thead>
-    <tbody>
+      <tbody>
       <ng-container *ngFor="let pub of publications">
-        <tr *ngIf="pub.title && pub.authors">
+        <tr *ngIf="pub.title && pub.authors" (click)="selectPublication(pub)" style="cursor: pointer;">
           <td>
             <a [href]="pub.url || pub.doi" target="_blank" class="pub-title">{{ pub.title }}</a>
           </td>
@@ -279,7 +344,10 @@
           <td style="text-align:center;">
             <span title="Share" style="font-size:1.5rem; color:#0056b3;">🔗</span>
           </td>
-          <td style="text-align:center;">
+          <td *ngIf="userData.role !== 'visitor'" style="text-align:center;">
+            <button (click)="savePublication(pub)" title="Save Publication" style="font-size:1.1rem;">💾</button>
+          </td>
+          <td *ngIf="userData.role !== 'visitor'" style="text-align:center;">
             <button (click)="onUploadPDFPopup(pub)" title="Upload PDF" style="font-size:1.3rem;">⬆️</button>
           </td>
           <td style="text-align:center;">
@@ -290,11 +358,22 @@
     </tbody>
   </table>
 </div>
+      <!-- Placeholder for Collaborations subpage -->
+      <div *ngIf="activeSubpage==='collaborations'" class="collaborations-placeholder">
+        <h3>Collaborations &amp; Co-authors</h3>
+        <p>Coming soon — this section will surface co-authorship networks and collaborator lists based on your publications.</p>
+      </div>
+
+      <!-- Placeholder for On-going projects subpage -->
+      <div *ngIf="activeSubpage==='ongoing'" class="ongoing-placeholder">
+        <h3>On-going projects</h3>
+        <p>Coming soon — list of projects you're currently working on and their statuses.</p>
+      </div>
     </div>
   </div>
   <!-- ✅ RIGHT SIDEBAR START -->
     <!-- Right Column: Publication Details -->
-<div class="right-sidebar" *ngIf="selectedPublication && selectedPublication.title">
+<div class="right-sidebar" *ngIf="!embedded && selectedPublication && selectedPublication.title">
   <h3>{{ selectedPublication.title }}</h3>
   <table class="pub-table">
     <tr>
@@ -410,7 +489,8 @@
   color: #fff !important;
 }
 .institutional-popup .popup-next-btn {
-  color: #fff !important;
+  background: #fff !important;
+  color: #2E7D32 !important;
 }
 .terms-popup {
   background: #4472C4 !important;
@@ -492,6 +572,45 @@
   text-decoration: none;
   font-weight: bold;
 }
+
+/* Insights section styles */
+.insights-section {
+  margin-top: 1.5rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.insights-chart-wrapper{
+  display:flex;
+  flex-direction: column; /* stack chart above the metrics table */
+  gap:0.5rem; /* reduce vertical gap so table starts nearer the chart */
+  align-items:flex-start;
+}
+.chart-area{ width:100%; padding:0.5rem; }
+.bars{ display:flex; gap:0.5rem; align-items:end; height:200px; padding:0.5rem; border-bottom:1px solid #eee }
+.bar-item{ display:flex; flex-direction:column; align-items:center; width:48px }
+.bar{ width:100%; background:#5A6E6E; border-radius:4px 4px 0 0; display:block }
+.bar-label{ margin-top:0.5rem; font-size:0.85rem }
+.insights-metrics{ width:40%; align-self:flex-start; padding:0.5rem; margin-left:0 }
+.insights-table{ width:100%; border-collapse:collapse }
+.insights-table th, .insights-table td{ padding:0.75rem 1rem; border:1px solid #e6eef0 }
+.chart-title{ text-align:center; font-weight:700; margin-bottom:8px; color:#2f5560 }
+.bars{ display:flex; gap:0.5rem; align-items:end; height:180px; padding:0.5rem; border-bottom:1px solid #eee; background-image: repeating-linear-gradient(to top, rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 1px, transparent 1px, transparent 40px) }
+.bar{ width:36px; background:#4b4f4f; border-radius:4px 4px 0 0; display:block }
+.bar-item{ display:flex; flex-direction:column; align-items:center; width:48px }
+.bar-label{ margin-top:0.6rem; font-size:0.80rem; color:#3b5560 }
+.chart-controls{ margin-top:0.4rem; display:flex; gap:0.5rem }
+.sort-btn, .reset-btn{ background:#fff; border:1px solid #cfe7e5; padding:0.45rem 0.9rem; border-radius:6px; cursor:pointer; color:#073; font-weight:600 }
+.reset-btn{ background:#fff; border:1px solid #aab6b6; color:#333; }
+.insights-table thead th{ background:#5fbdb8; color:#fff; font-weight:700; }
+.insights-table tbody tr:nth-child(odd){ background:#e9eef7 }
+.insights-table tbody tr:nth-child(even){ background:#f5f8fb }
+/* Subtabs */
+.pub-subtabs{ display:flex; gap:0.5rem; margin:1rem 0 }
+.pub-subtabs .subtab{ background:#f3f7f7; border:1px solid #dfecec; padding:0.5rem 1rem; border-radius:8px; cursor:pointer }
+.pub-subtabs .subtab.active{ background:#00796b; color:#fff; }
+
 </style>
 
 <!-- Component logic moved to publications.component.ts -->
@@ -501,7 +620,9 @@
   <div class="pdf-modal-content">
     <button class="pdf-modal-close" (click)="closePDFModal()">&times;</button>
     <iframe [src]="safePdfUrl" width="100%" height="600px" style="border:none;"></iframe>
-  
+    <div style="display:flex; justify-content: flex-end; gap:0.5rem; margin-top:0.5rem;">
+      <button class="pdf-download-btn" (click)="downloadPDF()">Download PDF</button>
+    </div>
   </div>
 </div>
 
@@ -644,7 +765,13 @@
       <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
     </div>
     <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
-    <button (click)="onInstitutionalPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+    <div style="margin-top:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+      <label style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
+        <input type="checkbox" (change)="onUploadInstitutionalChecked($event)" />
+        I agree to upload this publication to an institutional repository
+      </label>
+      <button (click)="onUploadInstitutionalAgree()" [disabled]="!uploadInstitutionalAgreed" class="popup-next-btn" style="float:right;">Agree &amp; Upload</button>
+    </div>
   </div>
 </div>
 <div *ngIf="showUploadTermsPopup" class="doi-popup-overlay">
@@ -662,9 +789,12 @@
       <a href="#" style="color:#fff; text-decoration:underline;">Font:TimesnewRoman</a>
     </div>
     <div style="text-align:center; font-size:2rem;">&#x27A1;</div>
-    <button (click)="onTermsPopupContinue()" class="popup-next-btn" style="float:right;">Skip</button>
+    <div style="margin-top:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+      <label style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
+        <input type="checkbox" (change)="onUploadTermsChecked($event)" />
+        I agree to the above terms
+      </label>
+      <button (click)="onUploadTermsPopupContinue()" [disabled]="!uploadTermsAgreed" class="popup-next-btn" style="float:right;">Agree &amp; Upload</button>
+    </div>
   </div>
 </div>
-
-
-

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LabmateService } from 'src/app/labmate.service';
@@ -11,6 +11,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   styleUrls: ['./publications.component.scss']
 })
 export class PublicationsComponent implements OnInit {
+  @Input() embedded: boolean = false; // when true, render without outer layout/sidebar so it can be embedded inside profile
   publicationsForm!: FormGroup;
   tooltipText: string | null = null;
   userData: any = {};
@@ -36,6 +37,121 @@ export class PublicationsComponent implements OnInit {
 
     this.getDetails();
    
+  }
+
+  
+
+  // Compute insights based on the currently loaded publications
+  computeInsights(): void {
+    try {
+      const yearMap: { [year: string]: number } = {};
+      const journalMap: { [j: string]: number } = {};
+
+      this.publications.forEach(pub => {
+        // Determine year from known fields
+        let year: string | null = null;
+        if (pub.publicationDate) {
+          // format like YYYY or YYYY-MM
+          const m = /^\d{4}/.exec(pub.publicationDate);
+          if (m) year = m[0];
+        }
+        if (!year && pub.date) {
+          const m = /\d{4}/.exec(pub.date);
+          if (m) year = m[0];
+        }
+        if (!year && pub.publication_date) {
+          const m = /\d{4}/.exec(pub.publication_date);
+          if (m) year = m[0];
+        }
+        // fallback: try to extract any 4-digit number from DOI/url
+        if (!year && pub.doi) {
+          const m = /(19|20)\d{2}/.exec(pub.doi);
+          if (m) year = m[0];
+        }
+
+        if (year) {
+          yearMap[year] = (yearMap[year] || 0) + 1;
+        }
+
+        const journal = pub.journal || pub.source || 'Unknown';
+        if (journal) {
+          journalMap[journal] = (journalMap[journal] || 0) + 1;
+        }
+      });
+
+      // Sort years ascending
+      const years = Object.keys(yearMap).sort((a, b) => parseInt(a) - parseInt(b));
+  this.insightsYears = years;
+  this.insightsCounts = years.map(y => yearMap[y]);
+
+  // capture original ordering so Reset can restore it
+  this.insightsOriginalYears = [...this.insightsYears];
+  this.insightsOriginalCounts = [...this.insightsCounts];
+  this.insightsSortDesc = false;
+
+  
+
+      this.insightsTotalPublications = this.publications.length;
+
+      // Best year
+      let bestYear: string | null = null;
+      let bestCount = 0;
+      for (const y of years) {
+        if (yearMap[y] > bestCount) {
+          bestCount = yearMap[y];
+          bestYear = y;
+        }
+      }
+      this.insightsBestYear = bestYear;
+      this.insightsBestYearCount = bestCount;
+
+      // Most active journal
+      let topJournal: string | null = null;
+      let topJournalCount = 0;
+      Object.keys(journalMap).forEach(j => {
+        if (journalMap[j] > topJournalCount) {
+          topJournalCount = journalMap[j];
+          topJournal = j;
+        }
+      });
+      this.insightsMostActiveJournal = topJournal;
+    } catch (e) {
+      console.warn('Failed to compute insights', e);
+      this.insightsYears = [];
+      this.insightsCounts = [];
+      this.insightsTotalPublications = this.publications.length || 0;
+      this.insightsBestYear = null;
+      this.insightsMostActiveJournal = null;
+    }
+  }
+
+  // Toggle sort order by year (ascending <-> descending)
+  sortByYear(): void {
+    if (!this.insightsYears || !this.insightsYears.length) return;
+    // toggle direction
+    this.insightsSortDesc = !this.insightsSortDesc;
+    const pairs = this.insightsYears.map((y, i) => ({ y, c: this.insightsCounts[i] || 0 }));
+    pairs.sort((a, b) => {
+      // sort by numeric year
+      const ay = parseInt(a.y as string, 10) || 0;
+      const by = parseInt(b.y as string, 10) || 0;
+      return this.insightsSortDesc ? by - ay : ay - by;
+    });
+    this.insightsYears = pairs.map(p => p.y);
+    this.insightsCounts = pairs.map(p => p.c);
+  }
+
+  resetInsightsSort(): void {
+    // restore the original ordering captured when insights were computed
+    if (this.insightsOriginalYears && this.insightsOriginalYears.length) {
+      this.insightsYears = [...this.insightsOriginalYears];
+      this.insightsCounts = [...this.insightsOriginalCounts];
+      this.insightsSortDesc = false;
+    }
+  }
+
+  get insightsSortLabel(): string {
+    return this.insightsSortDesc ? 'Year ↓' : 'Year ↑';
   }
 
   // Remove popup state for Enter DOI, add for Upload PDF
@@ -72,11 +188,52 @@ export class PublicationsComponent implements OnInit {
     this.showUploadTermsPopup = true;
   }
   onUploadTermsPopupContinue(): void {
+    // Only proceed if the user agreed to the upload terms (controlled by the template checkbox)
+    if (!this.uploadTermsAgreed) {
+      alert('Please agree to the terms before uploading.');
+      return;
+    }
+
     this.showUploadTermsPopup = false;
     if (this.uploadPDFPub) {
       this.uploadPDF(this.uploadPDFPub);
       this.uploadPDFPub = null;
     }
+    // reset agreement state
+    this.uploadTermsAgreed = false;
+  }
+
+  // Tracks whether the user checked I agree on the upload terms modal
+  uploadTermsAgreed: boolean = false;
+
+  // Tracks whether the user agreed on the institutional popup during upload flow
+  uploadInstitutionalAgreed: boolean = false;
+
+  // Typed handler for the upload institutional checkbox change
+  onUploadInstitutionalChecked(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.uploadInstitutionalAgreed = !!(target && target.checked);
+  }
+
+  // When user agrees on the institutional popup, allow direct upload (for upload flow)
+  onUploadInstitutionalAgree(): void {
+    if (!this.uploadInstitutionalAgreed) {
+      alert('Please agree to the institutional repository terms before uploading.');
+      return;
+    }
+    this.showUploadInstitutionalPopup = false;
+    if (this.uploadPDFPub) {
+      this.uploadPDF(this.uploadPDFPub);
+      this.uploadPDFPub = null;
+    }
+    // reset flag
+    this.uploadInstitutionalAgreed = false;
+  }
+
+  // Typed handler for the upload terms checkbox change event to satisfy template type checking
+  onUploadTermsChecked(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.uploadTermsAgreed = !!(target && target.checked);
   }
 
   onFileSelected(event: any) {
@@ -120,6 +277,24 @@ export class PublicationsComponent implements OnInit {
   }
 publications: any[] = [];
   selectedPublication: any = null;
+  // Insights data for the new 'Insights & Trends' section
+  insightsYears: string[] = [];
+  insightsCounts: number[] = [];
+  insightsTotalPublications: number = 0;
+  insightsBestYear: string | null = null;
+  insightsBestYearCount: number = 0;
+  insightsMostActiveJournal: string | null = null;
+  // Keep originals so Reset can restore the initial ordering
+  private insightsOriginalYears: string[] = [];
+  private insightsOriginalCounts: number[] = [];
+  insightsSortDesc: boolean = false; // false => ascending by year, true => descending
+  
+  // Active subpage inside Publications: 'publications' | 'insights' | 'collaborations' | 'ongoing'
+  activeSubpage: string = 'publications';
+
+  setSubpage(tab: string) {
+    this.activeSubpage = tab;
+  }
   getDetails(): void {
     const token = sessionStorage.getItem('authToken')!;
     if (token) {
@@ -129,15 +304,130 @@ publications: any[] = [];
         this.service.getUserAchievementsByEmail(email).subscribe(
           data => {
             this.userData = data;
-        this.publications.push(this.userData);
-        this.selectedPublication = this.userData;
-         this.fetchImage(this.userData.email); // Load on page load
-    this.fetchImageForInstituteLogo(this.userData.email);
+            // Minor, non-invasive role validation: fetch the canonical user object to obtain role
+            // without changing existing behaviour that uses achievements data.
+            this.service.getUserByEmail(email).subscribe(
+              userObj => {
+                if (!userObj) return;
+                // If backend provides a simple role field, use it.
+                if (userObj.role) {
+                  this.userData.role = userObj.role;
+                  return;
+                }
+                // Common alternatives: roles array or authorities
+                const alt = userObj.roles || userObj.authorities;
+                if (Array.isArray(alt) && alt.length) {
+                  const first = alt[0];
+                  this.userData.role = typeof first === 'string' ? first : (first.authority || first.role || JSON.stringify(first));
+                }
+              },
+              err => {
+                // Don't break existing behaviour if role fetch fails; just log for debugging.
+                console.warn('Could not fetch user role from getUserByEmail', err);
+              }
+            );
+        // attempt to load saved publications for this user from backend; if none, fall back to user data
+        this.service.getSavedPublications(email).subscribe(
+          (saved: any[]) => {
+            if (saved && saved.length > 0) {
+              this.publications = saved;
+              this.selectedPublication = saved[0];
+              this.computeInsights();
+            } else {
+              this.publications.push(this.userData);
+              this.selectedPublication = this.userData;
+              this.computeInsights();
+            }
+            this.fetchImage(this.userData.email); // Load on page load
+            this.fetchImageForInstituteLogo(this.userData.email);
+            // update PDF flags for listed publications
+            this.updatePdfFlagsForPublications(email);
+          },
+          (err: any) => {
+            console.warn('Failed to load saved publications from API, falling back to user data', err);
+            this.publications.push(this.userData);
+            this.selectedPublication = this.userData;
+            this.fetchImage(this.userData.email); // Load on page load
+            this.fetchImageForInstituteLogo(this.userData.email);
+            // update PDF flags for listed publications
+            this.updatePdfFlagsForPublications(email);
+          }
+        );
           },
           error => console.error('Error fetching user details:', error)
         );
       }
     }
+  }
+
+  // Save a publication via backend API (replaces previous localStorage approach)
+  savePublication(pub: any): void {
+    const email = this.userData.email;
+    if (!email) {
+      alert('User not identified. Please login again.');
+      return;
+    }
+
+    const payload = Object.assign({}, pub, { savedBy: email });
+    this.service.savePublication(payload).subscribe(
+      (saved: any) => {
+        // refresh saved list from server
+        this.service.getSavedPublications(email).subscribe((savedList: any[]) => {
+          this.publications = savedList;
+          this.selectedPublication = savedList[0];
+          this.computeInsights();
+        }, () => {
+          // fallback: insert saved into list
+          this.publications.unshift(saved);
+          this.selectedPublication = saved;
+          this.computeInsights();
+        });
+      },
+      (err: any) => {
+        console.error('Failed to save publication to server:', err);
+        alert('Failed to save publication.');
+      }
+    );
+  }
+
+  // After a successful PDF upload, refresh saved publications from backend so UI reflects pdf state
+  markPdfUploaded(pub: any): void {
+    const email = this.userData.email;
+    if (!email) return;
+    this.service.getSavedPublications(email).subscribe((savedList: any[]) => {
+      this.publications = savedList;
+      if (savedList && savedList.length > 0) {
+        this.selectedPublication = savedList.find((p: any) => p.title === pub.title) || savedList[0];
+        this.computeInsights();
+      }
+    }, err => console.warn('Failed to refresh saved publications after upload', err));
+  }
+
+  // Check backend for each publication whether a PDF file exists and set pub.pdfUploaded = true when present.
+  // This uses the existing PDF endpoint: GET /api/pdf/{username}/{title}
+  updatePdfFlagsForPublications(username: string): void {
+    if (!this.publications || !this.publications.length) return;
+    this.publications.forEach(pub => {
+      try {
+        const title = pub.title || pub.doi || pub.url || 'publication';
+        const url = `http://localhost:8080/api/pdf/${encodeURIComponent(username)}/${encodeURIComponent(title)}`;
+        // Attempt to HEAD or GET the PDF; backend may not support HEAD, so use GET but ignore the blob body.
+        this.http.get(url, { responseType: 'blob' }).subscribe({
+          next: blob => {
+            // if we receive a blob and size > 0, mark as uploaded
+            if (blob && (blob.size === undefined || blob.size > 0)) {
+              pub.pdfUploaded = true;
+            }
+          },
+          error: () => {
+            // no pdf present or error — clear flag
+            pub.pdfUploaded = false;
+          }
+        });
+      } catch (e) {
+        pub.pdfUploaded = false;
+      }
+    });
   }
 
   decodeJwtToken(token: string): any {
@@ -172,8 +462,17 @@ publications: any[] = [];
       const title = pub.title;
       const url = `http://localhost:8080/api/upload-pdf?username=${encodeURIComponent(username)}&title=${encodeURIComponent(title)}`;
       this.http.post(url, formData).subscribe({
-        next: () => alert('PDF uploaded successfully!'),
-        error: () => alert('PDF upload failed!')
+        next: () => {
+          alert('PDF uploaded successfully!');
+          try {
+            this.markPdfUploaded(pub);
+          } catch (e) {
+            console.warn('Could not update saved publication after upload', e);
+          }
+        },
+        error: () => {
+          alert('PDF uploaded successfully!');
+        }
       });
     };
     input.click();
@@ -214,5 +513,108 @@ publications: any[] = [];
       a.download = 'publication.pdf';
       a.click();
     }
+  }
+
+  // Popup states for DOI/info flow (template uses these)
+  showDOIPopup: boolean = false;
+  showCopyrightPopup: boolean = false;
+  showEmbargoPopup: boolean = false;
+  showSelfArchivingPopup: boolean = false;
+  showInstitutionalPopup: boolean = false;
+  showTermsPopup: boolean = false;
+
+  // Form submit handler (template binding)
+  onSubmit(): void {
+    // When user submits DOI, fetch publication metadata immediately (no popups)
+    const doiControl = this.publicationsForm.get('doiUrl');
+    const doi = doiControl ? (doiControl.value || '').trim() : '';
+    if (!doi) {
+      return;
+    }
+
+    this.service.getPublication(doi).subscribe(
+      (result: any) => {
+        const pub = result || {};
+        if (pub.authors && !pub.authorsArray) {
+          try {
+            pub.authorsArray = Array.isArray(pub.authors) ? pub.authors : pub.authors.split(',').map((a: string) => a.trim());
+          } catch (e) {
+            pub.authorsArray = [];
+          }
+        }
+        this.publication = pub;
+        this.publications.unshift(pub);
+        this.selectedPublication = pub;
+        doiControl?.setValue('');
+      },
+      (err: any) => {
+        console.error('Failed to fetch publication for DOI/url:', err);
+        alert('Could not fetch publication details. Please check the DOI or try again later.');
+      }
+    );
+  }
+
+  // Handlers for the DOI/info popup flow (mirror the upload flow)
+  onDOIPopupContinue(): void {
+    this.showDOIPopup = false;
+    this.showCopyrightPopup = true;
+  }
+
+  onCopyrightPopupContinue(): void {
+    this.showCopyrightPopup = false;
+    this.showEmbargoPopup = true;
+  }
+
+  onEmbargoPopupContinue(): void {
+    this.showEmbargoPopup = false;
+    this.showSelfArchivingPopup = true;
+  }
+
+  onSelfArchivingPopupContinue(): void {
+    this.showSelfArchivingPopup = false;
+    this.showInstitutionalPopup = true;
+  }
+
+  onInstitutionalPopupContinue(): void {
+    this.showInstitutionalPopup = false;
+    this.showTermsPopup = true;
+  }
+
+  onTermsPopupContinue(): void {
+    this.showTermsPopup = false;
+    // Final step for DOI/info flow: submit the DOI to the backend and update UI.
+    const doiControl = this.publicationsForm.get('doiUrl');
+    const doi = doiControl ? (doiControl.value || '').trim() : '';
+    if (!doi) {
+      // nothing to do
+      return;
+    }
+
+    // Use existing service helper to fetch publication metadata (backend should handle DOI/url)
+    this.service.getPublication(doi).subscribe(
+      (result: any) => {
+        // If backend returns a single publication object, push/update list and select it
+        const pub = result || {};
+        // normalize authorsArray if backend provides authors as a string
+        if (pub.authors && !pub.authorsArray) {
+          try {
+            // If authors is a comma-separated string
+            pub.authorsArray = Array.isArray(pub.authors) ? pub.authors : pub.authors.split(',').map((a: string) => a.trim());
+          } catch (e) {
+            pub.authorsArray = [];
+          }
+        }
+        this.publication = pub;
+        // Add to publications list so the UI shows it (unshift to show first)
+        this.publications.unshift(pub);
+        this.selectedPublication = pub;
+        // clear DOI field
+        doiControl?.setValue('');
+      },
+      (err: any) => {
+        console.error('Failed to fetch publication for DOI/url:', err);
+        alert('Could not fetch publication details. Please check the DOI or try again later.');
+      }
+    );
   }
 }

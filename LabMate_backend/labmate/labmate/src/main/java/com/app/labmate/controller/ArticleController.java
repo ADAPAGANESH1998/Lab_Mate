@@ -2,13 +2,7 @@ package com.app.labmate.controller;
 
 import com.app.labmate.model.ArticleDTO;
 import com.app.labmate.model.PdfDocument;
-import com.app.labmate.model.PdfMetadata;
 import com.app.labmate.repo.PdfDocumentRepository;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api")
@@ -32,13 +26,9 @@ public class ArticleController {
     @Autowired
     private PdfDocumentRepository pdfDocumentRepository;
 
-    // In-memory storage for PDF metadata
-    private static final CopyOnWriteArrayList<PdfMetadata> pdfMetadataList = new CopyOnWriteArrayList<>();
-
     @GetMapping("/article")
     public ResponseEntity<?> getArticle(@RequestParam String url) {
         try {
-            // ✅ Extract DOI from input URL
             String doi;
             if (url.contains("doi.org/")) {
                 doi = url.substring(url.indexOf("10."));
@@ -48,7 +38,6 @@ public class ArticleController {
                 return ResponseEntity.badRequest().body("Invalid DOI or URL format.");
             }
 
-            // ✅ Use Crossref free API
             String apiUrl = "https://api.crossref.org/works/" + doi;
 
             HttpHeaders headers = new HttpHeaders();
@@ -66,21 +55,16 @@ public class ArticleController {
 
             ArticleDTO article = new ArticleDTO();
 
-            // ✅ Title
             List<String> titles = (List<String>) message.get("title");
             article.setTitle(titles != null && !titles.isEmpty() ? titles.get(0) : null);
 
-            // ✅ DOI
-            article.setDoi("https://doi.org/"+(String) message.get("DOI"));
+            article.setDoi("https://doi.org/" + (String) message.get("DOI"));
 
-            // ✅ Journal Name
             List<String> containerTitles = (List<String>) message.get("container-title");
             article.setJournal(containerTitles != null && !containerTitles.isEmpty() ? containerTitles.get(0) : null);
 
-            // ✅ Volume
             article.setVolume((String) message.get("volume"));
 
-            // ✅ Publication Date
             if (message.get("issued") != null) {
                 Map<String, Object> issued = (Map<String, Object>) message.get("issued");
                 List<List<Integer>> dateParts = (List<List<Integer>>) issued.get("date-parts");
@@ -91,7 +75,6 @@ public class ArticleController {
                 }
             }
 
-            // ✅ Authors
             if (message.get("author") != null) {
                 List<Map<String, Object>> authorsList = (List<Map<String, Object>>) message.get("author");
                 List<String> authors = new ArrayList<>();
@@ -101,14 +84,40 @@ public class ArticleController {
                     authors.add((given != null ? given : "") + " " + (family != null ? family : ""));
                 }
                 article.setAuthors(String.join(", ", authors));
+                article.setAuthorsArray(authors);
             }
 
-            // ✅ Abstract (if available)
             if (message.get("abstract") != null) {
-                // Abstract might be in HTML tags, you can strip them if needed
                 String abs = (String) message.get("abstract");
-                abs = abs.replaceAll("<[^>]+>", ""); // remove HTML tags
+                abs = abs.replaceAll("<[^>]+>", "");
                 article.setAbstractText(abs);
+            }
+
+            if (message.get("URL") != null) {
+                article.setUrl((String) message.get("URL"));
+            }
+
+            if (article.getAbstractText() == null || article.getAbstractText().isBlank()) {
+                String fallback = fetchAbstractFromEuropePMC((String) message.get("DOI"));
+                if (fallback != null && !fallback.isBlank()) {
+                    article.setAbstractText(fallback);
+                }
+            }
+
+            if (article.getAbstractText() == null || article.getAbstractText().isBlank()) {
+                String doiStr = (String) message.get("DOI");
+                String ss = fetchAbstractFromSemanticScholar(doiStr);
+                if (ss != null && !ss.isBlank()) {
+                    article.setAbstractText(ss);
+                }
+            }
+
+            if (article.getAbstractText() == null || article.getAbstractText().isBlank()) {
+                String doiStr = (String) message.get("DOI");
+                String ox = fetchAbstractFromOpenAlex(doiStr);
+                if (ox != null && !ox.isBlank()) {
+                    article.setAbstractText(ox);
+                }
             }
 
             return ResponseEntity.ok(article);
@@ -119,12 +128,82 @@ public class ArticleController {
         }
     }
 
+    private String fetchAbstractFromEuropePMC(String doi) {
+        try {
+            if (doi == null || doi.isBlank()) return null;
+            String rawQuery = "DOI:\"" + doi + "\"";
+            String epmc = "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query="
+                    + URLEncoder.encode(rawQuery, StandardCharsets.UTF_8.name())
+                    + "&format=json&pageSize=1";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("User-Agent", "Mozilla/5.0");
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> resp = restTemplate.exchange(epmc, HttpMethod.GET, entity, Map.class);
+            if (resp.getStatusCode() != HttpStatus.OK || resp.getBody() == null) return null;
+
+            Map<String, Object> body = resp.getBody();
+            Object rl = body.get("resultList");
+            if (!(rl instanceof Map)) return null;
+            Map<String, Object> resultList = (Map<String, Object>) rl;
+            Object resultsObj = resultList.get("result");
+            if (!(resultsObj instanceof List)) return null;
+            List<Map<String, Object>> results = (List<Map<String, Object>>) resultsObj;
+            if (results.isEmpty()) return null;
+            Map<String, Object> first = results.get(0);
+            Object abs = first.get("abstractText");
+            if (abs == null) abs = first.get("abstract");
+            if (abs instanceof String) return ((String) abs).replaceAll("<[^>]+>", "");
+            return null;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private String fetchAbstractFromSemanticScholar(String doi) {
+        try {
+            if (doi == null || doi.isBlank()) return null;
+            String url = "https://api.semanticscholar.org/graph/v1/paper/DOI:" + URLEncoder.encode(doi, StandardCharsets.UTF_8.name()) + "?fields=abstract";
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("User-Agent", "Mozilla/5.0");
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+            if (resp.getStatusCode() != HttpStatus.OK || resp.getBody() == null) return null;
+            Map<String, Object> body = resp.getBody();
+            Object abs = body.get("abstract");
+            if (abs instanceof String) return ((String) abs).replaceAll("<[^>]+>", "");
+            return null;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private String fetchAbstractFromOpenAlex(String doi) {
+        try {
+            if (doi == null || doi.isBlank()) return null;
+            String url = "https://api.openalex.org/works/doi:" + URLEncoder.encode(doi, StandardCharsets.UTF_8.name());
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("User-Agent", "Mozilla/5.0");
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+            if (resp.getStatusCode() != HttpStatus.OK || resp.getBody() == null) return null;
+            Map<String, Object> body = resp.getBody();
+            Object abs = body.get("abstract");
+            if (abs == null) abs = body.get("abstract_inverted");
+            if (abs instanceof String) return ((String) abs).replaceAll("<[^>]+>", "");
+            return null;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
     @PostMapping("/upload-pdf")
     public ResponseEntity<?> uploadPdf(@RequestParam("file") MultipartFile file,
                                        @RequestParam("username") String username,
                                        @RequestParam("title") String title) {
         try {
-            if (file.isEmpty() || !file.getOriginalFilename().endsWith(".pdf")) {
+            if (file.isEmpty() || file.getOriginalFilename() == null || !file.getOriginalFilename().endsWith(".pdf")) {
                 return ResponseEntity.badRequest().body("Please upload a valid PDF file.");
             }
             byte[] pdfBytes = file.getBytes();

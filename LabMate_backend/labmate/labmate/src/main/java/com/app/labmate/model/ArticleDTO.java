@@ -1,6 +1,7 @@
 package com.app.labmate.model;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class ArticleDTO {
@@ -13,4 +14,7 @@ public class ArticleDTO {
     private String publicationDate;
     private String issn;
     private String url;
+
+    // list form of authors for clients that need array
+    private List<String> authorsArray;
 }

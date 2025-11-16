@@ -58,5 +58,16 @@ public class User {
     @NotBlank
     private String confirmPassword;
 
+
+    @Column(nullable = true)
+    private String role;
+
+    @PrePersist
+    public void ensureRole() {
+        if (this.role == null || this.role.isBlank()) {
+            this.role = "user"; // default when not provided
+        }
+    }
+
     // Getters and setters
 }

@@ -95,17 +95,11 @@ public class UserController {
         }
     }
 
-//    @GetMapping("/researcher/{id}")
-//    public Optional<User> getResearcher(@PathVariable("id") Long id) {
-//        return userService.getResearcher(id);
-//    }
-
     @GetMapping("/getByEmail/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable("email") String email) {
+    public ResponseEntity<?> getUserByEmail(@PathVariable("email") String email) {
         return userService.getUserByEmail(email);
     }
 
 
 
 }
-

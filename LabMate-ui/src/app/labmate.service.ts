@@ -132,4 +132,15 @@ getPublication(scienceDirectUrl: string): Observable<any> {
 
   return this.http.get<any>(backendUrl, { params: { url: scienceDirectUrl } });
 }
+
+  // Fetch saved publications for a user
+  getSavedPublications(email: string): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl + 'publications' + `/${encodeURIComponent(email)}`);
+  }
+
+  // Save a publication (persist to backend)
+  savePublication(data: any): Observable<any> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post(this.apiUrl + 'publications', JSON.stringify(data), { headers });
+  }
   }
