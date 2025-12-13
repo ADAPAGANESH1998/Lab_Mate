@@ -277,6 +277,19 @@ export class PublicationsComponent implements OnInit {
   }
 publications: any[] = [];
   selectedPublication: any = null;
+  // Citation stats fetched for the selected publication (used in Collaborations subpage)
+  citationStats: any = null;
+  citationYears: number[] = [];
+  citationCounts: number[] = [];
+  hIndex: number[] = [];
+  citationMaxCount: number = 0;
+  // Filter and UI state for collaborations chart
+  citationFilter: string = 'all'; // all | newest | oldest | last5 | last10 | custom
+  customStartYear: number | null = null;
+  customEndYear: number | null = null;
+  citationFilteredYears: number[] = [];
+  citationFilteredCounts: number[] = [];
+  citationSortDesc: boolean = false;
   // Insights data for the new 'Insights & Trends' section
   insightsYears: string[] = [];
   insightsCounts: number[] = [];
@@ -447,6 +460,151 @@ publications: any[] = [];
   }
   selectPublication(pub: any): void {
     this.selectedPublication = pub;
+  }
+
+  // When user clicks a publication row: select it, fetch citation stats and show Collaborations subpage
+  openPublication(pub: any): void {
+    this.selectedPublication = pub;
+    // Determine DOI parameter to send to backend API. Prefer full DOI url if available.
+    let doiParam = '';
+    if (pub.url && pub.url.includes('doi.org')) {
+      doiParam = pub.url;
+    } else if (pub.doi) {
+      // If DOI looks like bare doi (10.x/...), convert to full URL
+      doiParam = pub.doi.startsWith('http') ? pub.doi : `https://doi.org/${pub.doi}`;
+    } else if (pub.id) {
+      doiParam = pub.id;
+    }
+
+    if (!doiParam) {
+      // No DOI available — still navigate to collaborations tab but clear stats
+      this.citationStats = null;
+      this.citationYears = [];
+      this.citationCounts = [];
+      this.hIndex = [];
+      this.setSubpage('collaborations');
+      return;
+    }
+
+    const url = `http://localhost:8080/api/citations`;
+    // Use POST with DOI as query parameter: POST /api/citations?doi=<doi-url>
+    this.http.post(url, {}, { params: { doi: doiParam } }).subscribe({
+      next: (resp: any) => {
+        this.citationStats = resp || null;
+        // Prepare arrays for charting (openAlex counts_by_year preferred)
+        this.citationYears = [];
+        this.citationCounts = [];
+         this.hIndex = [];
+        this.citationMaxCount = 0;
+        try {
+          const counts = resp?.openAlex?.counts_by_year || [];
+          // sort ascending by year
+          counts.sort((a: any, b: any) => a.year - b.year);
+          counts.forEach((c: any) => {
+            this.citationYears.push(c.year);
+            this.citationCounts.push(c.cited_by_count || 0);
+          });
+          if (this.citationCounts.length) this.citationMaxCount = Math.max(...this.citationCounts);
+        } catch (e) {
+          this.citationYears = [];
+          this.citationCounts = [];
+          this.hIndex=[];
+          this.citationMaxCount = 0;
+        }
+        // initialize filtered arrays and UI state
+        this.resetCitationFilter();
+        this.setSubpage('collaborations');
+        // give Angular time to switch subpage then scroll into view
+        setTimeout(() => {
+          const el = document.querySelector('.collaborations-section');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+      },
+      error: (err: any) => {
+        console.error('Failed to fetch citation stats', err);
+        this.citationStats = null;
+        this.citationYears = [];
+        this.citationCounts = [];
+        this.citationMaxCount = 0;
+        this.hIndex = [];
+        this.resetCitationFilter();
+        this.setSubpage('collaborations');
+      }
+    });
+  }
+
+  // Apply the currently selected filter to produce filtered arrays used by the chart
+  applyCitationFilter(): void {
+    if (!this.citationYears || !this.citationYears.length) {
+      this.citationFilteredYears = [];
+      this.citationFilteredCounts = [];
+      this.citationMaxCount = 0;
+      return;
+    }
+
+    // start from full arrays
+    let pairs = this.citationYears.map((y, i) => ({ year: y, count: this.citationCounts[i] || 0 }));
+
+    const sortedAsc = [...pairs].sort((a, b) => a.year - b.year);
+    const sortedDesc = [...pairs].sort((a, b) => b.year - a.year);
+
+    switch (this.citationFilter) {
+      case 'newest':
+        pairs = sortedDesc;
+        break;
+      case 'oldest':
+        pairs = sortedAsc;
+        break;
+      case 'last5': {
+        const maxYear = Math.max(...this.citationYears);
+        const start = maxYear - 4;
+        pairs = sortedAsc.filter(p => p.year >= start && p.year <= maxYear);
+        break;
+      }
+      case 'last10': {
+        const maxYear = Math.max(...this.citationYears);
+        const start = maxYear - 9;
+        pairs = sortedAsc.filter(p => p.year >= start && p.year <= maxYear);
+        break;
+      }
+      case 'custom': {
+        if (this.customStartYear == null || this.customEndYear == null) {
+          pairs = sortedAsc;
+        } else {
+          const s = Math.min(this.customStartYear, this.customEndYear);
+          const e = Math.max(this.customStartYear, this.customEndYear);
+          pairs = sortedAsc.filter(p => p.year >= s && p.year <= e);
+        }
+        break;
+      }
+      default:
+        pairs = sortedAsc;
+    }
+
+    // Apply sort direction toggle on currently filtered pairs
+    pairs = this.citationSortDesc ? pairs.sort((a, b) => b.year - a.year) : pairs.sort((a, b) => a.year - b.year);
+
+    this.citationFilteredYears = pairs.map(p => p.year);
+    this.citationFilteredCounts = pairs.map(p => p.count);
+    this.citationMaxCount = this.citationFilteredCounts.length ? Math.max(...this.citationFilteredCounts) : 0;
+  }
+
+  // Toggle sort order for the collaborations chart
+  toggleCitationSort(): void {
+    this.citationSortDesc = !this.citationSortDesc;
+    this.applyCitationFilter();
+  }
+
+  resetCitationFilter(): void {
+    this.citationFilter = 'all';
+    this.customStartYear = null;
+    this.customEndYear = null;
+    this.citationSortDesc = false;
+    // default filtered arrays are full ascending by year
+    const pairs = this.citationYears.map((y, i) => ({ year: y, count: this.citationCounts[i] || 0 })).sort((a, b) => a.year - b.year);
+    this.citationFilteredYears = pairs.map(p => p.year);
+    this.citationFilteredCounts = pairs.map(p => p.count);
+    this.citationMaxCount = this.citationFilteredCounts.length ? Math.max(...this.citationFilteredCounts) : 0;
   }
 
   uploadPDF(pub: any): void {

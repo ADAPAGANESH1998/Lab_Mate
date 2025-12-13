@@ -326,9 +326,9 @@
     </thead>
       <tbody>
       <ng-container *ngFor="let pub of publications">
-        <tr *ngIf="pub.title && pub.authors" (click)="selectPublication(pub)" style="cursor: pointer;">
+        <tr *ngIf="pub.title && pub.authors" (click)="openPublication(pub)" style="cursor: pointer;">
           <td>
-            <a [href]="pub.url || pub.doi" target="_blank" class="pub-title">{{ pub.title }}</a>
+            <a [href]="pub.url || pub.doi" class="pub-title" (click)="openPublication(pub); $event.preventDefault(); $event.stopPropagation()">{{ pub.title }}</a>
           </td>
           <td>
             <ng-container *ngFor="let author of pub.authorsArray; let last = last">
@@ -345,23 +345,72 @@
             <span title="Share" style="font-size:1.5rem; color:#0056b3;">🔗</span>
           </td>
           <td *ngIf="userData.role !== 'visitor'" style="text-align:center;">
-            <button (click)="savePublication(pub)" title="Save Publication" style="font-size:1.1rem;">💾</button>
+            <button (click)="$event.stopPropagation(); savePublication(pub)" title="Save Publication" style="font-size:1.1rem;">💾</button>
           </td>
           <td *ngIf="userData.role !== 'visitor'" style="text-align:center;">
-            <button (click)="onUploadPDFPopup(pub)" title="Upload PDF" style="font-size:1.3rem;">⬆️</button>
+            <button (click)="$event.stopPropagation(); onUploadPDFPopup(pub)" title="Upload PDF" style="font-size:1.3rem;">⬆️</button>
           </td>
           <td style="text-align:center;">
-            <button (click)="viewPDF(pub)" title="View PDF" style="font-size:1.3rem;">📄</button>
+            <button (click)="$event.stopPropagation(); viewPDF(pub)" title="View PDF" style="font-size:1.3rem;">📄</button>
           </td>
         </tr>
       </ng-container>
     </tbody>
   </table>
 </div>
-      <!-- Placeholder for Collaborations subpage -->
-      <div *ngIf="activeSubpage==='collaborations'" class="collaborations-placeholder">
+      <!-- Collaborations subpage shows citation trends for the selected publication -->
+      <div *ngIf="activeSubpage==='collaborations'" class="collaborations-section">
         <h3>Collaborations &amp; Co-authors</h3>
-        <p>Coming soon — this section will surface co-authorship networks and collaborator lists based on your publications.</p>
+        <div *ngIf="citationStats" style="margin-top:1rem; background:#fff; padding:1rem; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+          <!-- Controls: time filter, custom range, sort/reset -->
+          <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.75rem;">
+            <label style="font-weight:600; margin-right:0.5rem">Filter</label>
+            <select [(ngModel)]="citationFilter" (change)="applyCitationFilter()" style="padding:0.35rem 0.6rem; border-radius:6px; border:1px solid #dfecec; background:#fff">
+              <option value="all">All years</option>
+              <option value="newest">Year (Newest → Oldest)</option>
+              <option value="oldest">Year (Oldest → Newest)</option>
+              <option value="last5">Last 5 Years</option>
+              <option value="last10">Last 10 Years</option>
+              <option value="custom">Custom Range</option>
+            </select>
+            <div *ngIf="citationFilter==='custom'" style="display:flex; gap:0.5rem; align-items:center; margin-left:0.5rem">
+              <input type="number" placeholder="Start year" [(ngModel)]="customStartYear" style="width:96px; padding:0.3rem" />
+              <input type="number" placeholder="End year" [(ngModel)]="customEndYear" style="width:96px; padding:0.3rem" />
+              <button (click)="applyCitationFilter()" class="sort-btn">Apply</button>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center">
+              <button (click)="toggleCitationSort()" class="sort-btn">Sort: {{ citationSortDesc ? 'Year ↓' : 'Year ↑' }}</button>
+              <button (click)="resetCitationFilter()" class="reset-btn">Reset</button>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:1rem; align-items:flex-start;">
+            <div style="width:100%;">
+              <div style="text-align:center; font-weight:700; margin-bottom:8px; color:#2f5560">Number of Citations</div>
+              <div class="citation-bars" style="display:flex; gap:0.5rem; align-items:end; height:220px; padding:0.5rem; border-bottom:1px solid #eee; background-image: repeating-linear-gradient(to top, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 40px);">
+                <ng-container *ngFor="let y of citationFilteredYears; let i = index">
+                  <div style="display:flex; flex-direction:column; align-items:center; width:48px">
+                    <div style="width:36px; background:#4b4f4f; border-radius:4px 4px 0 0;" [style.height.px]="citationMaxCount>0 ? (citationFilteredCounts[i] / citationMaxCount * 160) : 4"></div>
+                    <div style="margin-top:6px; font-size:0.80rem; color:#3b5560">{{ y }}</div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+            <div style="width:100%; max-width:600px;">
+              <div style="background:#5fbdb8; color:#fff; font-weight:700; padding:0.5rem; text-align:center; border-radius:4px 4px 0 0">Publications trends</div>
+              <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                  <tr><th style="background:#bcdcdc; padding:0.5rem">All</th><th style="background:#bcdcdc; padding:0.5rem">Since {{ citationFilteredYears && citationFilteredYears.length ? citationFilteredYears[0] : '' }}</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td style="padding:0.6rem; border:1px solid #e6eef0">Citations</td><td style="padding:0.6rem; border:1px solid #e6eef0">{{ citationStats.openAlex?.cited_by_count || citationStats.crossref?.citationCount || citationStats.semanticScholar?.citationCount || 0 }}</td></tr>
+                  <tr><td style="padding:0.6rem; border:1px solid #e6eef0">h index</td><td style="padding:0.6rem; border:1px solid #e6eef0">{{ citationStats.openAlex?.cited_by_count}}</td></tr>
+                  <tr><td style="padding:0.6rem; border:1px solid #e6eef0">i10-index</td><td style="padding:0.6rem; border:1px solid #e6eef0">N/A</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!citationStats" style="margin-top:1rem; color:#555">Select a publication to fetch citation trends.</div>
       </div>
 
       <!-- Placeholder for On-going projects subpage -->
